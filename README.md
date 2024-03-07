@@ -1,2 +1,2 @@
-# nouvelles-api
-API pour nouvelles : site d'information et forum
+# Nouvelles API
+API pour nouvelles : site d'information et forum.
