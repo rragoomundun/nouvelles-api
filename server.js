@@ -2,6 +2,8 @@ import express from 'express';
 import morgan from 'morgan';
 import colors from 'colors';
 
+import errorMiddleware from './middlewares/error.middleware.js';
+
 const app = express();
 
 if (process.env.NODE_ENV === 'dev') {
@@ -18,6 +20,8 @@ import apiRoute from './routes/api.route.js';
 
 // Mount routers
 app.use(`${apiPrefix}/api`, apiRoute);
+
+app.use(errorMiddleware);
 
 app.listen(process.env.PORT, () => {
   console.log('');
