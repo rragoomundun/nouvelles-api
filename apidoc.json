@@ -1,0 +1,14 @@
+{
+  "name": "Nouvelles API",
+  "version": "0.1.0",
+  "description": "Backend API for Nouvelles: information and forum website",
+  "title": "Nouvelles API",
+  "url": "http://localhost:5000/v1",
+  "sampleUrl": "http://localhost:5000/v1",
+  "order": ["API"],
+  "template": {
+    "forceLanguage": "en",
+    "withCompare": false,
+    "withGenerator": false
+  }
+}

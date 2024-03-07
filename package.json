@@ -1,0 +1,29 @@
+{
+  "name": "nouvelles-api",
+  "version": "0.1.0",
+  "description": "API pour nouvelles : site d'information et forum.",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "prod": "NODE_ENV=prod nodemon --env-file config.env server.js",
+    "dev": "NODE_ENV=dev nodemon --env-file config.env server.js",
+    "gendoc": "node ./node_modules/apidoc/bin/apidoc -i ./controllers/ -o ./public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/rragoomundun/nouvelles-api.git"
+  },
+  "author": "Raphaël Ragoomundun",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/rragoomundun/nouvelles-api/issues"
+  },
+  "homepage": "https://github.com/rragoomundun/nouvelles-api#readme",
+  "dependencies": {
+    "apidoc": "^1.2.0",
+    "colors": "^1.4.0",
+    "express": "^4.18.3",
+    "http-status-codes": "^2.3.0",
+    "morgan": "^1.10.0"
+  }
+}
