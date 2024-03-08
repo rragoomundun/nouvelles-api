@@ -1,4 +1,5 @@
 import httpStatus from 'http-status-codes';
+import { ValidationError } from 'sequelize';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -24,30 +25,42 @@ import dbUtil from '../utils/db.util.js';
  *   "password": "jf8uaFa%5yIp"
  * }
  *
- * @apiError (Error (400)) ALREADY_REGISTERED Email address is already registered
- * @apiError (Error (400)) PASSWORD_TOO_SHORT The password is too short
- *
  * @apiPermission Public
  */
 const register = asyncHandler(async (req, res, next) => {
   const { name, email, password } = req.body;
-  const emailExists = await dbUtil.User.findOne({ where: { email: email } });
+  const emailExists = await dbUtil.User.findOne({ where: { email } });
+  const nameExists = await dbUtil.User.findOne({ where: { name } });
 
   if (emailExists) {
-    return next(new ErrorResponse('Email already registered', httpStatus.BAD_REQUEST, 'ALREADY_REGISTERED'));
+    return next(new ErrorResponse("L'adresse email est déjà utilisée", httpStatus.BAD_REQUEST));
   }
 
-  if (password.length < 12) {
-    return next(new ErrorResponse('Password too short', httpStatus.BAD_REQUEST, 'PASSWORD_TOO_SHORT'));
+  if (nameExists) {
+    return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
   }
 
-  await dbUtil.User.create({ name, email, password });
+  try {
+    const result = await dbUtil.sequelize.transaction(async (transaction) => {
+      const user = await dbUtil.User.create({ name, email, password }, { transaction });
 
-  return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
+      return user;
+    });
+  } catch (error) {
+    if (error instanceof ValidationError) {
+      return next(new ErrorResponse(error.errors[0].message, httpStatus.BAD_REQUEST));
+    } else {
+      return next(new ErrorResponse('Impossible de créer le compte', httpStatus.BAD_REQUEST));
+    }
+  }
+
+  return res.status(httpStatus.OK).json({});
+
+  // return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
 
   /**
    * TODO:
-   *  1. explorer la validation avec sequelize
+   *  1. explorer la validation avec sequelize (validate message)
    *  2. utiliser la transaction pour créer l'utilisateur et le token
    *  3. Token
    *  4. encrypt password
