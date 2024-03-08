@@ -45,6 +45,16 @@ npm run dev
 npm run prod
 ```
 
+## Configurer la base de donnée
+
+Configure la base de donnée initiale en créant les tables et ajoutant quelques données.
+
+Attention cette commande supprime toute les données déjà existante. Faire un backup afin d'éviter la perte de données s'il y en as.
+
+```
+npm run dbsetup
+```
+
 ## Générer la documentation
 
 ```
