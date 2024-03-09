@@ -1,4 +1,5 @@
 import { Sequelize, DataTypes } from 'sequelize';
+import bcrypt from 'bcrypt';
 
 const User = (sequelize) => {
   const User = sequelize.define(
@@ -42,9 +43,21 @@ const User = (sequelize) => {
     },
     {
       tableName: 'users',
-      timestamps: false
+      timestamps: false,
+      hooks: {
+        beforeSave: async (user) => {
+          if (user.changed('password')) {
+            const salt = await bcrypt.genSalt();
+            user.password = await bcrypt.hash(user.password, salt);
+          }
+        }
+      }
     }
   );
+
+  User.prototype.verifyPassword = async (password, hash) => {
+    return await bcrypt.compare(password, hash);
+  };
 
   return User;
 };

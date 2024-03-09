@@ -16,7 +16,7 @@ await dbUtil.MessageLike.sync({ force: true });
 // Create the admin user
 await dbUtil.User.create({
   email: 'alien@fakeaddress.com',
-  password: '123456',
+  password: '1234567890112',
   name: 'Alien'
 });
 

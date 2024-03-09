@@ -40,6 +40,7 @@ const register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
   }
 
+  // TODO: test if transactions work properly by making either User.create or Token.create fail
   try {
     const result = await dbUtil.sequelize.transaction(async (transaction) => {
       const user = await dbUtil.User.create({ name, email, password }, { transaction });
@@ -50,6 +51,7 @@ const register = asyncHandler(async (req, res, next) => {
     if (error instanceof ValidationError) {
       return next(new ErrorResponse(error.errors[0].message, httpStatus.BAD_REQUEST));
     } else {
+      console.log(error);
       return next(new ErrorResponse('Impossible de créer le compte', httpStatus.BAD_REQUEST));
     }
   }
