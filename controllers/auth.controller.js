@@ -40,10 +40,15 @@ const register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
   }
 
-  // TODO: test if transactions work properly by making either User.create or Token.create fail
   try {
     const result = await dbUtil.sequelize.transaction(async (transaction) => {
       const user = await dbUtil.User.create({ name, email, password }, { transaction });
+      const token = await dbUtil.Token.create(
+        { type: 'register-confirm', token: 'empty', expire: Date.now(), user_id: user.id },
+        { transaction }
+      );
+      const role = await dbUtil.Role.findOne({ where: { label: 'regulier' } }, { transaction });
+      const userRole = await dbUtil.UserRole.create({ user_id: user.id, role_id: role.id }, { transaction });
 
       return user;
     });
@@ -51,23 +56,13 @@ const register = asyncHandler(async (req, res, next) => {
     if (error instanceof ValidationError) {
       return next(new ErrorResponse(error.errors[0].message, httpStatus.BAD_REQUEST));
     } else {
-      console.log(error);
       return next(new ErrorResponse('Impossible de créer le compte', httpStatus.BAD_REQUEST));
     }
   }
 
-  return res.status(httpStatus.OK).json({});
+  // TODO: send email
 
-  // return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
-
-  /**
-   * TODO:
-   *  1. explorer la validation avec sequelize (validate message)
-   *  2. utiliser la transaction pour créer l'utilisateur et le token
-   *  3. Token
-   *  4. encrypt password
-   *  4. send email
-   */
+  return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
 });
 
 export { register };
