@@ -1,51 +1,91 @@
 # Nouvelles API
 
-API pour nouvelles : site d'information et forum.
+Nouvelles API : information website and forum.
 
-## Utilisation
+## Usage
 
-Renommer le fichier **config.env.env** en **config.env** et mettre à jour les valeurs.
+Rename the file **config.env.env** to **config.env** and update the values.
 
-### Exemple config.env
+### config.env example
 
 ```
-# Le port utilisé par l'API
+# Port to use
 PORT=5000
 
 
-# L'utisateur de la base de donnée
+# Database user
 DB_USER=postgres
 
-# L'hôte de la base de donnée
+# Database host
 DB_HOST=localhost
 
-# Le nom de la base de donnée
+# Database name
 DB_DATABASE=nouvelles
 
-# Le mot de passe de la base de donnée
+# Database password
 DB_PASSWORD=I9jz4p8m
 
-# Le port de la base de donnée
+# Database port
 DB_PORT=5432
+
+
+# AWS SES Region
+AWS_SES_REGION=sesregion
+
+# AWS API Access Key
+AWS_ACCESS_KEY_ID=accesskeyid
+
+# AWS API Secret Access Key
+AWS_SECRET_ACCESS_KEY=secretaccesskey
+
+# AWS S3 Upload Bucket Region
+AWS_S3_REGION=s3region
+
+# AWS S3 Upload Image Bucket Name
+AWS_S3_IMAGE_BUCKET_NAME=s3bucketname
+
+
+# From email name
+FROM_NAME=Nouvelles
+
+# From email adress
+FROM_EMAIL=noreply@test.com
+
+# Reply email adress
+REPLY_EMAIL=contact@test.com
+
+
+# The front end URL
+APP_URL=r3tests.net/nouvelles
 ```
 
-## Installer les dépendances
+## Install dependencies
 
 ```
 npm install
 ```
 
-## Executer l'API
+## Run API
 
 ```
-# Exécuter en dévelopement
+# Run in development mode
 npm run dev
 
-# Exécuter en production
+# Run in production mode
 npm run prod
 ```
 
-## Générer la documentation
+## Database configuration
+
+Configure the database by creating tables and adding some data.
+
+Warning: this command will delete all previous data. Do a backup to avoid lost of data.
+
+```
+npm run dbsetup
+```
+
+## Generate documentation
 
 ```
 npm run gendoc
@@ -55,4 +95,4 @@ npm run gendoc
 
 - Version: 0.1.0
 - License: MIT
-- Auteur: Raphaël Ragoomundun
+- Author: Raphaël Ragoomundun

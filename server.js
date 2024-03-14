@@ -10,6 +10,9 @@ if (process.env.NODE_ENV === 'dev') {
   app.use(morgan('dev'));
 }
 
+// Body parser
+app.use(express.json());
+
 // Set static folder
 app.use(express.static('public'));
 
@@ -17,9 +20,11 @@ const apiPrefix = '/v1';
 
 // Route files
 import apiRoute from './routes/api.route.js';
+import authRoute from './routes/auth.route.js';
 
 // Mount routers
 app.use(`${apiPrefix}/api`, apiRoute);
+app.use(`${apiPrefix}/auth`, authRoute);
 
 app.use(errorMiddleware);
 
