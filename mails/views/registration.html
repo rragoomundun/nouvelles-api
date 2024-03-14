@@ -1,0 +1,35 @@
+<tr>
+  <td style="margin: 0; padding: 0">
+    <span
+      style="
+        display: inline-block;
+        width: 100%;
+        border-left: 1px solid #ccc;
+        border-right: 1px solid #ccc;
+        padding-top: 0.5rem;
+        padding-bottom: 1rem;
+      "
+    >
+      <span style="display: block; margin: auto; padding: 0 2rem">
+        <p style="color: #000">
+          <b style="color: #000">Bonjour {{name}},</b>
+        </p>
+
+        <p style="color: #000">
+          afin de compléter votre inscription à Nouvelles il vous faut valider votre adresse e-mail en cliquant sur le
+          lien ci-dessous :
+        </p>
+
+        <p>
+          <a href="{{confirmationLink}}">Confirmer mon adresse e-mail</a>
+        </p>
+
+        <p style="color: #000">Ou vous pouvez copier-coller ce lien dans votre navigateur web :</p>
+
+        <p style="color: #000">
+          <b>{{confirmationLink}}</b>
+        </p>
+      </span>
+    </span>
+  </td>
+</tr>

@@ -6,6 +6,8 @@ import asyncHandler from '../middlewares/async.middleware.js';
 import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
+import { deleteUser } from '../utils/user.util.js';
+import { send } from '../utils/mail.util.js';
 
 /**
  * @api {POST} /auth/register Register User
@@ -40,8 +42,11 @@ const register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
   }
 
+  // Create user
+  let result;
+
   try {
-    const result = await dbUtil.sequelize.transaction(async (transaction) => {
+    result = await dbUtil.sequelize.transaction(async (transaction) => {
       const user = await dbUtil.User.create({ name, email, password }, { transaction });
       const token = await dbUtil.Token.create(
         { type: 'register-confirm', token: 'empty', expire: Date.now(), user_id: user.id },
@@ -50,7 +55,7 @@ const register = asyncHandler(async (req, res, next) => {
       const role = await dbUtil.Role.findOne({ where: { label: 'regulier' } }, { transaction });
       const userRole = await dbUtil.UserRole.create({ user_id: user.id, role_id: role.id }, { transaction });
 
-      return user;
+      return { user, token };
     });
   } catch (error) {
     if (error instanceof ValidationError) {
@@ -60,7 +65,21 @@ const register = asyncHandler(async (req, res, next) => {
     }
   }
 
-  // TODO: send email
+  // Send confirmation email
+  try {
+    const mailOptions = {
+      mail: 'registration',
+      userId: result.user.id,
+      templateOptions: {
+        confirmationLink: `${process.env.APP_URL}/inscription/confirmer/${result.token.token}`
+      }
+    };
+
+    await send(mailOptions);
+  } catch {
+    await deleteUser(result.user.id);
+    return next(new ErrorResponse('Impossible de créer le compte', httpStatus.INTERNAL_SERVER_ERROR));
+  }
 
   return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
 });
