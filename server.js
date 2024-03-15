@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import colors from 'colors';
+import cookieParser from 'cookie-parser';
 
 import errorMiddleware from './middlewares/error.middleware.js';
 
@@ -12,6 +13,9 @@ if (process.env.NODE_ENV === 'dev') {
 
 // Body parser
 app.use(express.json());
+
+// Cookie parser
+app.use(cookieParser());
 
 // Set static folder
 app.use(express.static('public'));
