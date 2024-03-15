@@ -115,7 +115,7 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
 });
 
 /**
- * @api {POST} /auth/login Login user
+ * @api {POST} /auth/login Login User
  * @apiGroup Auth
  * @apiName AuthLogin
  *
@@ -152,7 +152,7 @@ const login = asyncHandler(async (req, res, next) => {
 
   const token = await dbUtil.Token.findOne({ where: { user_id: user.id } });
 
-  if (token.type === 'register-confirm') {
+  if (token && token.type === 'register-confirm') {
     return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
   }
 
