@@ -181,6 +181,19 @@ const logout = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).end();
 });
 
+/**
+ * @api {GET} /auth/authorized Authorized
+ * @apiGroup Auth
+ * @apiName AuthAuthorized
+ *
+ * @apiDescription Checks if the user token is valid
+ *
+ * @apiPermission Private
+ */
+const authorized = asyncHandler((req, res, next) => {
+  res.status(httpStatus.OK).json({});
+});
+
 // Get token from model, create cookie, and send response
 const sendTokenResponse = async (userId, statusCode, res) => {
   const user = await dbUtil.User.findOne({ where: { id: userId } });
@@ -195,4 +208,4 @@ const sendTokenResponse = async (userId, statusCode, res) => {
   res.status(statusCode).cookie('token', token, options).json({ token });
 };
 
-export { register, registerConfirm, login, logout };
+export { register, registerConfirm, login, logout, authorized };
