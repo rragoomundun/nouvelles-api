@@ -1,5 +1,6 @@
 import { Sequelize, DataTypes } from 'sequelize';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
 
 const User = (sequelize) => {
   const User = sequelize.define(
@@ -57,6 +58,12 @@ const User = (sequelize) => {
 
   User.prototype.verifyPassword = async (password, hash) => {
     return await bcrypt.compare(password, hash);
+  };
+
+  User.prototype.getSignedJWTToken = (id) => {
+    return jwt.sign({ id }, process.env.JWT_SECRET, {
+      expiresIn: process.env.JWT_EXPIRE
+    });
   };
 
   return User;

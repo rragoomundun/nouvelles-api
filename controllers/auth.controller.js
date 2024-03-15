@@ -84,4 +84,48 @@ const register = asyncHandler(async (req, res, next) => {
   return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
 });
 
-export { register };
+/**
+ * @api {PUT} /auth/register/confirm/:confirmationToken Confirm User Registration
+ * @apiGroup Auth
+ * @apiName AuthRegisterConfirm
+ *
+ * @apiDescription Confirm a user account by validating its confirmation token.
+ *
+ * @apiParam {String} confirmationToken User's confirmation token
+
+ * @apiSuccess (Success(200)) {String} token JWT token
+ * @apiSuccessExample Success Example
+ * {
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
+ * }
+ *
+ * @apiPermission Public
+ */
+const registerConfirm = asyncHandler(async (req, res, next) => {
+  const confirmationToken = req.params.confirmationToken;
+  const token = await dbUtil.Token.findOne({ where: { token: confirmationToken } });
+
+  if (!token) {
+    return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST));
+  }
+
+  await dbUtil.Token.destroy({ where: { token: confirmationToken } });
+
+  sendTokenResponse(token.user_id, httpStatus.OK, res);
+});
+
+// Get token from model, create cookie, and send response
+const sendTokenResponse = async (userId, statusCode, res) => {
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+  const token = user.getSignedJWTToken(userId);
+
+  const options = {
+    expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * process.env.JWT_COOKIE_EXPIRE),
+    sameSite: 'None',
+    secure: true
+  };
+
+  res.status(statusCode).cookie('token', token, options).json({ token });
+};
+
+export { register, registerConfirm };
