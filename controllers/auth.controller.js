@@ -114,6 +114,57 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
   sendTokenResponse(token.user_id, httpStatus.OK, res);
 });
 
+/**
+ * @api {POST} /auth/login Login User
+ * @apiGroup Auth
+ * @apiName AuthLogin
+ *
+ * @apiDescription Login user and returns token.
+ *
+ * @apiParam {String} email User's email
+ * @apiParam {String{12..}} password User's password
+ * @apiParamExample Body Example
+ * {
+ *   "email": "newuser@test.com",
+ *   "password": "123456789012"
+ * }
+ *
+ * @apiSuccess (Success(200)) {String} token JWT token
+ * @apiSuccessExample Success Example
+ * {
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
+ * }
+ *
+ * @apiPermission Public
+ */
+const login = asyncHandler(async (req, res, next) => {
+  const { email, password } = req.body;
+
+  if (!email || !password) {
+    return next(new ErrorResponse('Veuillez fournir un email et un mot de passe', httpStatus.BAD_REQUEST));
+  }
+
+  const user = await dbUtil.User.findOne({ where: { email } });
+
+  if (!user) {
+    return next(new ErrorResponse('Données saisies invalides', httpStatus.UNAUTHORIZED));
+  }
+
+  const token = await dbUtil.Token.findOne({ where: { user_id: user.id } });
+
+  if (token && token.type === 'register-confirm') {
+    return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
+  }
+
+  const isPasswordMatch = await user.verifyPassword(password, user.password);
+
+  if (!isPasswordMatch) {
+    return next(new ErrorResponse('Données saisies invalides', httpStatus.UNAUTHORIZED));
+  }
+
+  sendTokenResponse(user.id, httpStatus.OK, res);
+});
+
 // Get token from model, create cookie, and send response
 const sendTokenResponse = async (userId, statusCode, res) => {
   const user = await dbUtil.User.findOne({ where: { id: userId } });
@@ -128,4 +179,4 @@ const sendTokenResponse = async (userId, statusCode, res) => {
   res.status(statusCode).cookie('token', token, options).json({ token });
 };
 
-export { register, registerConfirm };
+export { register, registerConfirm, login };
