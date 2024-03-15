@@ -6,7 +6,6 @@ import asyncHandler from '../middlewares/async.middleware.js';
 import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
-import cryptUtil from '../utils/crypt.util.js';
 import { deleteUser } from '../utils/user.util.js';
 import { send } from '../utils/mail.util.js';
 
@@ -101,12 +100,9 @@ const register = asyncHandler(async (req, res, next) => {
  * }
  *
  * @apiPermission Public
- * 
- * TODO: get the user from the token and send the user id to sendTokenResponse
  */
 const registerConfirm = asyncHandler(async (req, res, next) => {
-  const confirmationToken = cryptUtil.getDigestHash(req.params.confirmationToken);
-
+  const confirmationToken = req.params.confirmationToken;
   const token = await dbUtil.Token.findOne({ where: { token: confirmationToken } });
 
   if (!token) {
@@ -115,12 +111,13 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
 
   await dbUtil.Token.destroy({ where: { token: confirmationToken } });
 
-  sendTokenResponse(userId, httpStatus.OK, res);
+  sendTokenResponse(token.user_id, httpStatus.OK, res);
 });
 
 // Get token from model, create cookie, and send response
-const sendTokenResponse = (userId, statusCode, res) => {
-  const token = dbUtil.User.getSignedJWTToken(userId);
+const sendTokenResponse = async (userId, statusCode, res) => {
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+  const token = user.getSignedJWTToken(userId);
 
   const options = {
     expires: new Date(Date.now() + 1000 * 60 * 60 * 24 * process.env.JWT_COOKIE_EXPIRE),
