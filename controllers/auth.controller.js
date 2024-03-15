@@ -7,8 +7,8 @@ import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
 import cookieUtil from '../utils/cookie.util.js';
-import { deleteUser } from '../utils/user.util.js';
-import { send } from '../utils/mail.util.js';
+import mailUtil from '../utils/mail.util.js';
+import userUtil from '../utils/user.util.js';
 
 /**
  * @api {POST} /auth/register Register User
@@ -76,9 +76,9 @@ const register = asyncHandler(async (req, res, next) => {
       }
     };
 
-    await send(mailOptions);
+    await mailUtil.send(mailOptions);
   } catch {
-    await deleteUser(result.user.id);
+    await userUtil.deleteUser(result.user.id);
     return next(new ErrorResponse('Impossible de créer le compte', httpStatus.INTERNAL_SERVER_ERROR));
   }
 
@@ -182,6 +182,65 @@ const logout = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @api {POST} /auth/password/forgot Forgot Password
+ * @apiGroup Auth
+ * @apiName AuthForgotPassword
+ *
+ * @apiDescription Generate reset password token and send reset email
+ *
+ * @apiBody {String} email User's email
+ *
+ * @apiParamExample Body Example
+ * {
+ *   "email": "newuser@test.com"
+ * }
+ *
+ * @apiPermission Public
+ */
+const forgotPassword = asyncHandler(async (req, res, next) => {
+  const { email } = req.body;
+
+  if (!email) {
+    return next(new ErrorResponse('Veuillez spécifier un email', httpStatus.BAD_REQUEST));
+  }
+
+  const user = await dbUtil.User.findOne({ where: { email } });
+
+  if (!user) {
+    return next(new ErrorResponse('Adresse email invalide'), httpStatus.BAD_REQUEST);
+  }
+
+  const token = await dbUtil.Token.findOne({ where: { user_id: user.id } });
+
+  if (token && token.type === 'register-confirm') {
+    return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
+  }
+
+  const passwordResetToken = await dbUtil.Token.create({
+    type: 'password-reset',
+    token: 'empty',
+    expire: Date.now(),
+    user_id: user.id
+  });
+
+  try {
+    const mailOptions = {
+      mail: 'passwordForgotten',
+      userId: user.id,
+      templateOptions: {
+        resetLink: `${process.env.APP_URL}/password/reset/${passwordResetToken.token}`
+      }
+    };
+
+    await mailUtil.send(mailOptions);
+
+    res.status(httpStatus.OK).end();
+  } catch {
+    return next(new ErrorResponse("Impossible d'envoyer l'email"), httpStatus.INTERNAL_SERVER_ERROR);
+  }
+});
+
+/**
  * @api {GET} /auth/authorized Authorized
  * @apiGroup Auth
  * @apiName AuthAuthorized
@@ -208,4 +267,4 @@ const sendTokenResponse = async (userId, statusCode, res) => {
   res.status(statusCode).cookie('token', token, options).json({ token });
 };
 
-export { register, registerConfirm, login, logout, authorized };
+export { register, registerConfirm, login, logout, forgotPassword, authorized };

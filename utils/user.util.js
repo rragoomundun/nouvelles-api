@@ -10,4 +10,4 @@ const deleteUser = async (userId) => {
   } catch {}
 };
 
-export { deleteUser };
+export default { deleteUser };

@@ -47,4 +47,4 @@ const send = async (options) => {
   await transporter.sendMail(message);
 };
 
-export { send };
+export default { send };

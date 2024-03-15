@@ -5,7 +5,16 @@
   "title": "Nouvelles API",
   "url": "http://localhost:5000/v1",
   "sampleUrl": "http://localhost:5000/v1",
-  "order": ["API", "Auth", "AuthRegister", "AuthRegisterConfirm", "AuthLogin", "AuthLogout", "AuthAuthorized"],
+  "order": [
+    "API",
+    "Auth",
+    "AuthRegister",
+    "AuthRegisterConfirm",
+    "AuthLogin",
+    "AuthLogout",
+    "AuthForgotPassword",
+    "AuthAuthorized"
+  ],
   "template": {
     "forceLanguage": "en",
     "withCompare": false,
