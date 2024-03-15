@@ -6,6 +6,7 @@ import asyncHandler from '../middlewares/async.middleware.js';
 import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
+import cookieUtil from '../utils/cookie.util.js';
 import { deleteUser } from '../utils/user.util.js';
 import { send } from '../utils/mail.util.js';
 
@@ -121,8 +122,9 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
  *
  * @apiDescription Login user and returns token.
  *
- * @apiParam {String} email User's email
- * @apiParam {String{12..}} password User's password
+ * @apiBody {String} email User's email
+ * @apiBody {String{12..}} password User's password
+ *
  * @apiParamExample Body Example
  * {
  *   "email": "newuser@test.com",
@@ -165,6 +167,20 @@ const login = asyncHandler(async (req, res, next) => {
   sendTokenResponse(user.id, httpStatus.OK, res);
 });
 
+/**
+ * @api {GET} /auth/logout Logout
+ * @apiGroup Auth
+ * @apiName AuthLogout
+ *
+ * @apiDescription Log out user by clearing token cookie.
+ *
+ * @apiPermission Private
+ */
+const logout = asyncHandler(async (req, res, next) => {
+  cookieUtil.clearToken(res);
+  res.status(httpStatus.OK).end();
+});
+
 // Get token from model, create cookie, and send response
 const sendTokenResponse = async (userId, statusCode, res) => {
   const user = await dbUtil.User.findOne({ where: { id: userId } });
@@ -179,4 +195,4 @@ const sendTokenResponse = async (userId, statusCode, res) => {
   res.status(statusCode).cookie('token', token, options).json({ token });
 };
 
-export { register, registerConfirm, login };
+export { register, registerConfirm, login, logout };
