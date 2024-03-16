@@ -6,6 +6,7 @@ import {
   login,
   logout,
   forgotPassword,
+  passwordReset,
   authorized
 } from '../controllers/auth.controller.js';
 
@@ -19,6 +20,7 @@ router
   .post('/login', login)
   .get('/logout', logout)
   .post('/password/forgot', forgotPassword)
+  .put('/password/reset/:resetPasswordToken', passwordReset)
   .get('/authorized', protect, authorized);
 
 export default router;

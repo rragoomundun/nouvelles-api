@@ -43,6 +43,15 @@ const register = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
   }
 
+  if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
+    return next(
+      new ErrorResponse(
+        `Veuillez saisir un mot de passe d'au moins ${process.env.PASSWORD_MIN_LENGTH} caractères`,
+        httpStatus.BAD_REQUEST
+      )
+    );
+  }
+
   // Create user
   let result;
 
@@ -247,6 +256,58 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @api {PUT} /auth/password/reset/:resetPasswordToken Reset Password
+ * @apiGroup Auth
+ * @apiName AuthResetPassword
+ *
+ * @apiDescription Reset user password
+ *
+ * @apiParam {String} resetPasswordToken User's confirmation token
+ * @apiBody {String{12..}} newPassword User's new password
+ *
+ * @apiParamExample Body Example
+ * {
+ *   "password": "87654321"
+ * }
+ *
+ * @apiSuccess (Success(200)) {String} token JWT token
+ * @apiSuccessExample Success Example
+ * {
+ *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
+ * }
+ *
+ * @apiPermission Public
+ */
+const passwordReset = asyncHandler(async (req, res, next) => {
+  const { password } = req.body;
+  const { resetPasswordToken } = req.params;
+
+  if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
+    return next(
+      new ErrorResponse(
+        `Veuillez saisir un mot de passe d'au moins ${process.env.PASSWORD_MIN_LENGTH} caractères`,
+        httpStatus.BAD_REQUEST
+      )
+    );
+  }
+
+  const token = await dbUtil.Token.findOne({ where: { token: resetPasswordToken } });
+
+  if (!token) {
+    return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST));
+  }
+
+  const user = await dbUtil.User.findOne({ where: { id: token.user_id } });
+
+  user.password = password;
+
+  await user.save();
+  await dbUtil.Token.destroy({ where: { token: resetPasswordToken } });
+
+  sendTokenResponse(user.id, httpStatus.OK, res);
+});
+
+/**
  * @api {GET} /auth/authorized Authorized
  * @apiGroup Auth
  * @apiName AuthAuthorized
@@ -255,9 +316,9 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  *
  * @apiPermission Private
  */
-const authorized = asyncHandler((req, res, next) => {
+const authorized = (req, res, next) => {
   res.status(httpStatus.OK).json({});
-});
+};
 
 // Get token from model, create cookie, and send response
 const sendTokenResponse = async (userId, statusCode, res) => {
@@ -273,4 +334,4 @@ const sendTokenResponse = async (userId, statusCode, res) => {
   res.status(statusCode).cookie('token', token, options).json({ token });
 };
 
-export { register, registerConfirm, login, logout, forgotPassword, authorized };
+export { register, registerConfirm, login, logout, forgotPassword, passwordReset, authorized };
