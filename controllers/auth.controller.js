@@ -201,7 +201,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
   const { email } = req.body;
 
   if (!email) {
-    return next(new ErrorResponse('Veuillez spécifier un email', httpStatus.BAD_REQUEST));
+    return next(new ErrorResponse('Veuillez ajouter un email', httpStatus.BAD_REQUEST));
   }
 
   const user = await dbUtil.User.findOne({ where: { email } });
@@ -212,8 +212,14 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 
   const token = await dbUtil.Token.findOne({ where: { user_id: user.id } });
 
-  if (token && token.type === 'register-confirm') {
-    return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
+  if (token) {
+    if (token.type === 'register-confirm') {
+      return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
+    } else if (token.type === 'password-reset') {
+      return next(
+        new ErrorResponse('Une procédure de récupération de mot de passe est déjà en cours', httpStatus.CONFLICT)
+      );
+    }
   }
 
   const passwordResetToken = await dbUtil.Token.create({
