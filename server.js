@@ -32,6 +32,11 @@ app.use(`${apiPrefix}/auth`, authRoute);
 
 app.use(errorMiddleware);
 
+// Crons
+import tokenCron from './crons/token.cron.js';
+
+tokenCron.clearTokens();
+
 app.listen(process.env.PORT, () => {
   console.log('');
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${process.env.PORT}`.green.bold);

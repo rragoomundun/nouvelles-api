@@ -68,6 +68,10 @@ JWT_COOKIE_EXPIRE=180
 PASSWORD_MIN_LENGTH=12
 
 
+# Clear token cron execution date
+CLEAR_TOKENS_CRON_DATE=* * * * *
+
+
 # The front end URL
 APP_URL=r3tests.net/nouvelles
 ```
