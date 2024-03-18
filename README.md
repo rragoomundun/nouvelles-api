@@ -13,6 +13,10 @@ Rename the file **config.env.env** to **config.env** and update the values.
 PORT=5000
 
 
+# Maximum number of requests per minute (used only in prod mode)
+RATE_LIMIT=100
+
+
 # Database user
 DB_USER=postgres
 

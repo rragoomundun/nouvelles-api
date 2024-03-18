@@ -6,6 +6,7 @@ import asyncHandler from '../middlewares/async.middleware.js';
 import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
+import htmlUtil from '../utils/html.util.js';
 import cookieUtil from '../utils/cookie.util.js';
 import mailUtil from '../utils/mail.util.js';
 import userUtil from '../utils/user.util.js';
@@ -112,7 +113,7 @@ const register = asyncHandler(async (req, res, next) => {
  * @apiPermission Public
  */
 const registerConfirm = asyncHandler(async (req, res, next) => {
-  const confirmationToken = req.params.confirmationToken;
+  const confirmationToken = htmlUtil.sanitize(req.params.confirmationToken);
   const token = await dbUtil.Token.findOne({ where: { token: confirmationToken } });
 
   if (!token) {
@@ -280,7 +281,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  */
 const passwordReset = asyncHandler(async (req, res, next) => {
   const { password } = req.body;
-  const { resetPasswordToken } = req.params;
+  const resetPasswordToken = htmlUtil.sanitize(req.params.resetPasswordToken);
 
   if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
     return next(
