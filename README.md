@@ -114,6 +114,6 @@ npm run gendoc
 
 ---
 
-- Version: 0.1.0
+- Version: 0.2.0
 - License: MIT
 - Author: Raphaël Ragoomundun
