@@ -1,5 +1,6 @@
 import httpStatus from 'http-status-codes';
 import { ValidationError } from 'sequelize';
+import { validationResult } from 'express-validator';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -32,67 +33,69 @@ import userUtil from '../utils/user.util.js';
  * @apiPermission Public
  */
 const register = asyncHandler(async (req, res, next) => {
-  const { name, email, password } = req.body;
-  const emailExists = await dbUtil.User.findOne({ where: { email } });
-  const nameExists = await dbUtil.User.findOne({ where: { name } });
+  // TODO: create a function to handle validationResults in order to not repeat ourselves
+  const validatorResult = validationResult(req);
 
-  if (emailExists) {
-    return next(new ErrorResponse("L'adresse email est déjà utilisée", httpStatus.BAD_REQUEST));
+  console.log(validatorResult);
+
+  if (validatorResult.isEmpty()) {
+    return res.status(httpStatus.OK).json({});
   }
 
-  if (nameExists) {
-    return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
-  }
+  return res.send({ errors: validatorResult.array() });
 
-  if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
-    return next(
-      new ErrorResponse(
-        `Veuillez saisir un mot de passe d'au moins ${process.env.PASSWORD_MIN_LENGTH} caractères`,
-        httpStatus.BAD_REQUEST
-      )
-    );
-  }
-
+  // const { name, email, password } = req.body;
+  // const emailExists = await dbUtil.User.findOne({ where: { email } });
+  // const nameExists = await dbUtil.User.findOne({ where: { name } });
+  // if (emailExists) {
+  //   return next(new ErrorResponse("L'adresse email est déjà utilisée", httpStatus.BAD_REQUEST));
+  // }
+  // if (nameExists) {
+  //   return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
+  // }
+  // if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
+  //   return next(
+  //     new ErrorResponse(
+  //       `Veuillez saisir un mot de passe d'au moins ${process.env.PASSWORD_MIN_LENGTH} caractères`,
+  //       httpStatus.BAD_REQUEST
+  //     )
+  //   );
+  // }
   // Create user
-  let result;
-
-  try {
-    result = await dbUtil.sequelize.transaction(async (transaction) => {
-      const user = await dbUtil.User.create({ name, email, password }, { transaction });
-      const token = await dbUtil.Token.create(
-        { type: 'register-confirm', token: 'empty', expire: Date.now(), user_id: user.id },
-        { transaction }
-      );
-      const role = await dbUtil.Role.findOne({ where: { label: 'regulier' } }, { transaction });
-      const userRole = await dbUtil.UserRole.create({ user_id: user.id, role_id: role.id }, { transaction });
-
-      return { user, token };
-    });
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return next(new ErrorResponse(error.errors[0].message, httpStatus.BAD_REQUEST));
-    } else {
-      return next(new ErrorResponse('Impossible de créer le compte', httpStatus.BAD_REQUEST));
-    }
-  }
-
+  // let result;
+  // try {
+  //   result = await dbUtil.sequelize.transaction(async (transaction) => {
+  //     const user = await dbUtil.User.create({ name, email, password }, { transaction });
+  //     const token = await dbUtil.Token.create(
+  //       { type: 'register-confirm', token: 'empty', expire: Date.now(), user_id: user.id },
+  //       { transaction }
+  //     );
+  //     const role = await dbUtil.Role.findOne({ where: { label: 'regulier' } }, { transaction });
+  //     const userRole = await dbUtil.UserRole.create({ user_id: user.id, role_id: role.id }, { transaction });
+  //     return { user, token };
+  //   });
+  // } catch (error) {
+  //   if (error instanceof ValidationError) {
+  //     return next(new ErrorResponse(error.errors[0].message, httpStatus.BAD_REQUEST));
+  //   } else {
+  //     return next(new ErrorResponse('Impossible de créer le compte', httpStatus.BAD_REQUEST));
+  //   }
+  // }
   // Send confirmation email
-  try {
-    const mailOptions = {
-      mail: 'registration',
-      userId: result.user.id,
-      templateOptions: {
-        confirmationLink: `${process.env.APP_URL}/inscription/confirmer/${result.token.token}`
-      }
-    };
-
-    await mailUtil.send(mailOptions);
-  } catch {
-    await userUtil.deleteUser(result.user.id);
-    return next(new ErrorResponse('Impossible de créer le compte', httpStatus.INTERNAL_SERVER_ERROR));
-  }
-
-  return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
+  // try {
+  //   const mailOptions = {
+  //     mail: 'registration',
+  //     userId: result.user.id,
+  //     templateOptions: {
+  //       confirmationLink: `${process.env.APP_URL}/inscription/confirmer/${result.token.token}`
+  //     }
+  //   };
+  //   await mailUtil.send(mailOptions);
+  // } catch {
+  //   await userUtil.deleteUser(result.user.id);
+  //   return next(new ErrorResponse('Impossible de créer le compte', httpStatus.INTERNAL_SERVER_ERROR));
+  // }
+  // return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
 });
 
 /**

@@ -18,13 +18,7 @@ const User = (sequelize) => {
       },
       password: {
         type: DataTypes.STRING,
-        allowNull: false,
-        validate: {
-          len: {
-            args: [12, 64],
-            msg: 'Le mot de passe doit faire au moins 12 caractères'
-          }
-        }
+        allowNull: false
       },
       registration_date: {
         type: DataTypes.DATE,
