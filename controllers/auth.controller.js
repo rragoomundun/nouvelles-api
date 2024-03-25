@@ -1,5 +1,4 @@
 import httpStatus from 'http-status-codes';
-import { ValidationError } from 'sequelize';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -10,6 +9,7 @@ import htmlUtil from '../utils/html.util.js';
 import cookieUtil from '../utils/cookie.util.js';
 import mailUtil from '../utils/mail.util.js';
 import userUtil from '../utils/user.util.js';
+import validatorUtil from '../utils/validator.util.js';
 
 /**
  * @api {POST} /auth/register Register User
@@ -29,29 +29,25 @@ import userUtil from '../utils/user.util.js';
  *   "password": "jf8uaFa%5yIp"
  * }
  *
+ * @apiError (Error (400)) NO_NAME There is no name
+ * @apiError (Error (400)) NAME_IN_USE The username is already in use
+ * @apiError (Error (400)) NO_EMAIL There is no email
+ * @apiError (Error (400)) INVALID_EMAIL The email address is invalid
+ * @apiError (Error (400)) EMAIL_IN_USE The email address is already in use
+ * @apiError (Error (400)) NO_PASSWORD There is no password
+ * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (500)) ACCOUNT_CREATION_FAILED Unable to create the account
+ *
  * @apiPermission Public
  */
 const register = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
   const { name, email, password } = req.body;
-  const emailExists = await dbUtil.User.findOne({ where: { email } });
-  const nameExists = await dbUtil.User.findOne({ where: { name } });
-
-  if (emailExists) {
-    return next(new ErrorResponse("L'adresse email est déjà utilisée", httpStatus.BAD_REQUEST));
-  }
-
-  if (nameExists) {
-    return next(new ErrorResponse("Le nom d'utilisateur est déjà utilisé", httpStatus.BAD_REQUEST));
-  }
-
-  if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
-    return next(
-      new ErrorResponse(
-        `Veuillez saisir un mot de passe d'au moins ${process.env.PASSWORD_MIN_LENGTH} caractères`,
-        httpStatus.BAD_REQUEST
-      )
-    );
-  }
 
   // Create user
   let result;
@@ -65,18 +61,16 @@ const register = asyncHandler(async (req, res, next) => {
       );
       const role = await dbUtil.Role.findOne({ where: { label: 'regulier' } }, { transaction });
       const userRole = await dbUtil.UserRole.create({ user_id: user.id, role_id: role.id }, { transaction });
-
       return { user, token };
     });
-  } catch (error) {
-    if (error instanceof ValidationError) {
-      return next(new ErrorResponse(error.errors[0].message, httpStatus.BAD_REQUEST));
-    } else {
-      return next(new ErrorResponse('Impossible de créer le compte', httpStatus.BAD_REQUEST));
-    }
+  } catch {
+    return next(
+      new ErrorResponse('Cannot create account', httpStatus.INTERNAL_SERVER_ERROR, 'ACCOUNT_CREATION_FAILED')
+    );
   }
 
   // Send confirmation email
+
   try {
     const mailOptions = {
       mail: 'registration',
@@ -85,11 +79,12 @@ const register = asyncHandler(async (req, res, next) => {
         confirmationLink: `${process.env.APP_URL}/inscription/confirmer/${result.token.token}`
       }
     };
-
     await mailUtil.send(mailOptions);
   } catch {
     await userUtil.deleteUser(result.user.id);
-    return next(new ErrorResponse('Impossible de créer le compte', httpStatus.INTERNAL_SERVER_ERROR));
+    return next(
+      new ErrorResponse('Cannot create account', httpStatus.INTERNAL_SERVER_ERROR, 'ACCOUNT_CREATION_FAILED')
+    );
   }
 
   return res.status(httpStatus.CREATED).json({ msg: 'User registered' });
@@ -109,6 +104,8 @@ const register = asyncHandler(async (req, res, next) => {
  * {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
  * }
+ * 
+ * @apiError (Error (400)) INVALID_TOKEN Invalid token
  *
  * @apiPermission Public
  */
@@ -117,7 +114,7 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
   const token = await dbUtil.Token.findOne({ where: { token: confirmationToken } });
 
   if (!token) {
-    return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST));
+    return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST, 'INVALID_TOKEN'));
   }
 
   await dbUtil.Token.destroy({ where: { token: confirmationToken } });
@@ -147,31 +144,34 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
  * }
  *
+ * @apiError (Error (400)) NO_EMAIL There is no email
+ * @apiError (Error (400)) INVALID_EMAIL The email address is invalid
+ * @apiError (Error (400)) NO_PASSWORD There is no password
+ * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (401)) INVALID The data entered is invalid
+ * @apiError (Error (401)) UNCONFIRMED The account is unconfirmed
+ *
  * @apiPermission Public
  */
 const login = asyncHandler(async (req, res, next) => {
-  const { email, password } = req.body;
+  const validationError = validatorUtil.validate(req);
 
-  if (!email || !password) {
-    return next(new ErrorResponse('Veuillez fournir un email et un mot de passe', httpStatus.BAD_REQUEST));
+  if (validationError) {
+    return next(validationError);
   }
+
+  const { email, password } = req.body;
 
   const user = await dbUtil.User.findOne({ where: { email } });
 
-  if (!user) {
-    return next(new ErrorResponse('Données saisies invalides', httpStatus.UNAUTHORIZED));
+  if (!user || !(await user.verifyPassword(password, user.password))) {
+    return next(new ErrorResponse('Data entered invalid', httpStatus.UNAUTHORIZED, 'INVALID'));
   }
 
   const token = await dbUtil.Token.findOne({ where: { user_id: user.id } });
 
   if (token && token.type === 'register-confirm') {
-    return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
-  }
-
-  const isPasswordMatch = await user.verifyPassword(password, user.password);
-
-  if (!isPasswordMatch) {
-    return next(new ErrorResponse('Données saisies invalides', httpStatus.UNAUTHORIZED));
+    return next(new ErrorResponse('Account unconfirmed', httpStatus.UNAUTHORIZED, 'UNCONFIRMED'));
   }
 
   sendTokenResponse(user.id, httpStatus.OK, res);
@@ -205,29 +205,41 @@ const logout = asyncHandler(async (req, res, next) => {
  *   "email": "newuser@test.com"
  * }
  *
+ * @apiError (Error (400)) NO_EMAIL There is no email
+ * @apiError (Error (400)) INVALID_EMAIL The email address is invalid
+ * @apiError (Error (401)) UNCONFIRMED The account is unconfirmed
+ * @apiError (Error (409)) ALREADY_RECOVERING A recovery procedure is already in progress
+ * @apiError (Error (500)) EMAIL_SENDING_FAILED Cannot send recovery email
+ *
  * @apiPermission Public
  */
 const forgotPassword = asyncHandler(async (req, res, next) => {
-  const { email } = req.body;
+  const validationError = validatorUtil.validate(req);
 
-  if (!email) {
-    return next(new ErrorResponse('Veuillez ajouter un email', httpStatus.BAD_REQUEST));
+  if (validationError) {
+    return next(validationError);
   }
+
+  const { email } = req.body;
 
   const user = await dbUtil.User.findOne({ where: { email } });
 
   if (!user) {
-    return next(new ErrorResponse('Adresse email invalide'), httpStatus.BAD_REQUEST);
+    return next(new ErrorResponse('Invalid email address', httpStatus.BAD_REQUEST, 'INVALID_EMAIL'));
   }
 
   const token = await dbUtil.Token.findOne({ where: { user_id: user.id } });
 
   if (token) {
     if (token.type === 'register-confirm') {
-      return next(new ErrorResponse('Compte non confirmé', httpStatus.UNAUTHORIZED));
+      return next(new ErrorResponse('Acount unconfirmed', httpStatus.UNAUTHORIZED, 'UNCONFIRMED'));
     } else if (token.type === 'password-reset') {
       return next(
-        new ErrorResponse('Une procédure de récupération de mot de passe est déjà en cours', httpStatus.CONFLICT)
+        new ErrorResponse(
+          'A password recovery procedure is already in progress',
+          httpStatus.CONFLICT,
+          'ALREADY_RECOVERING'
+        )
       );
     }
   }
@@ -252,7 +264,8 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
 
     res.status(httpStatus.OK).end();
   } catch {
-    return next(new ErrorResponse("Impossible d'envoyer l'email"), httpStatus.INTERNAL_SERVER_ERROR);
+    await passwordResetToken.destroy();
+    return next(new ErrorResponse('Cannot send email', httpStatus.INTERNAL_SERVER_ERROR, 'EMAIL_SENDING_FAILED'));
   }
 });
 
@@ -277,25 +290,26 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
  * }
  *
+ * @apiError (Error (400)) NO_PASSWORD There is no password
+ * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (400)) INVALID_TOKEN Invalid token
+ *
  * @apiPermission Public
  */
 const passwordReset = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
   const { password } = req.body;
   const resetPasswordToken = htmlUtil.sanitize(req.params.resetPasswordToken);
-
-  if (!password || password.length < process.env.PASSWORD_MIN_LENGTH) {
-    return next(
-      new ErrorResponse(
-        `Veuillez saisir un mot de passe d'au moins ${process.env.PASSWORD_MIN_LENGTH} caractères`,
-        httpStatus.BAD_REQUEST
-      )
-    );
-  }
 
   const token = await dbUtil.Token.findOne({ where: { token: resetPasswordToken } });
 
   if (!token) {
-    return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST));
+    return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST, 'INVALID_TOKEN'));
   }
 
   const user = await dbUtil.User.findOne({ where: { id: token.user_id } });
