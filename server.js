@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import colors from 'colors';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import hpp from 'hpp';
@@ -14,6 +15,25 @@ const app = express();
 if (process.env.NODE_ENV === 'dev') {
   app.use(morgan('dev'));
 }
+
+// Enable CORS
+const origin = [];
+
+if (process.env.NODE_ENV === 'dev') {
+  origin.push(
+    /http:\/\/localhost:.*/,
+    /https:\/\/localhost:.*/,
+    /http:\/\/127\.0\.0\.1:.*/,
+    /https:\/\/127\.0\.0\.1:.*/
+  );
+}
+
+app.use(
+  cors({
+    origin,
+    credentials: true
+  })
+);
 
 // Body parser
 app.use(express.json());
