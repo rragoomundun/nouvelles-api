@@ -117,9 +117,11 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse('Invalid token', httpStatus.BAD_REQUEST, 'INVALID_TOKEN'));
   }
 
-  await dbUtil.Token.destroy({ where: { token: confirmationToken } });
+  const userId = token.user_id;
 
-  sendTokenResponse(token.user_id, httpStatus.OK, res);
+  await token.destroy();
+
+  sendTokenResponse(userId, httpStatus.OK, res);
 });
 
 /**
