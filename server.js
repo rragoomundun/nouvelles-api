@@ -68,10 +68,12 @@ const apiPrefix = '/v1';
 // Route files
 import apiRoute from './routes/api.route.js';
 import authRoute from './routes/auth.route.js';
+import userRoute from './routes/user.route.js';
 
 // Mount routers
 app.use(`${apiPrefix}/api`, apiRoute);
 app.use(`${apiPrefix}/auth`, authRoute);
+app.use(`${apiPrefix}/user`, userRoute);
 
 app.use(errorMiddleware);
 

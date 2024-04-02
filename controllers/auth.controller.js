@@ -99,7 +99,7 @@ const register = asyncHandler(async (req, res, next) => {
  *
  * @apiParam {String} confirmationToken User's confirmation token
 
- * @apiSuccess (Success(200)) {String} token JWT token
+ * @apiSuccess (Success (200)) {String} token JWT token
  * @apiSuccessExample Success Example
  * {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
@@ -140,7 +140,7 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
  *   "password": "123456789012"
  * }
  *
- * @apiSuccess (Success(200)) {String} token JWT token
+ * @apiSuccess (Success (200)) {String} token JWT token
  * @apiSuccessExample Success Example
  * {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
@@ -286,7 +286,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  *   "password": "87654321"
  * }
  *
- * @apiSuccess (Success(200)) {String} token JWT token
+ * @apiSuccess (Success (200)) {String} token JWT token
  * @apiSuccessExample Success Example
  * {
  *   "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6IjVlNmY0MDQ1MzVlNzU3NWM1NGExNTMyNyIsImlhdCI6MTU4NDM0OTI1MywiZXhwIjoxNTg2OTQxMjUzfQ.2f59_zRuYVXADCQWnQb6mG8NG3zulj12HZCgoIdMEfw"
