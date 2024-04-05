@@ -17,7 +17,9 @@
     "User",
     "UserGet",
     "Categories",
-    "CategoriesGetAll"
+    "CategoriesGetAll",
+    "Home",
+    "HomeContent"
   ],
   "template": {
     "forceLanguage": "en",

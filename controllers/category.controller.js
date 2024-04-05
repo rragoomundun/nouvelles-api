@@ -12,9 +12,9 @@ import dbUtil from '../utils/db.util.js';
  * @apiDescription Get all categories
  *
  * @apiSuccess (Success (200)) {Int} id The category id
- * @apiSUccess (Success (200)) {String} name The category name
- * @apiSUccess (Success (200)) {String} label The category label
- * @apiSUccess (Success (200)) {Int} position The category position
+ * @apiSuccess (Success (200)) {String} name The category name
+ * @apiSuccess (Success (200)) {String} label The category label
+ * @apiSuccess (Success (200)) {Int} position The category position
  *
  * @apiSuccessExample Success Example
  * [
