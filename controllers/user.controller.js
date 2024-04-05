@@ -26,7 +26,7 @@ import dbUtil from '../utils/db.util.js';
  *   "roles": ["regular"]
  * }
  *
- * @apiPermission WriteOnly
+ * @apiPermission Private
  */
 const getUser = asyncHandler(async (req, res, next) => {
   const userData = await dbUtil.User.findOne({

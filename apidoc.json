@@ -13,7 +13,11 @@
     "AuthLogin",
     "AuthLogout",
     "AuthForgotPassword",
-    "AuthAuthorized"
+    "AuthAuthorized",
+    "User",
+    "UserGet",
+    "Categories",
+    "CategoriesGetAll"
   ],
   "template": {
     "forceLanguage": "en",
