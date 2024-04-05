@@ -258,7 +258,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
       mail: 'passwordForgotten',
       userId: user.id,
       templateOptions: {
-        resetLink: `${process.env.APP_URL}/password/reset/${passwordResetToken.token}`
+        resetLink: `${process.env.APP_URL}/auth/mot-de-passe/reinitialiser/${passwordResetToken.token}`
       }
     };
 
@@ -279,7 +279,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  * @apiDescription Reset user password
  *
  * @apiParam {String} resetPasswordToken User's confirmation token
- * @apiBody {String{12..}} newPassword User's new password
+ * @apiBody {String{12..}} password User's new password
  *
  * @apiParamExample Body Example
  * {

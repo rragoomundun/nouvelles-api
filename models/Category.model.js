@@ -18,6 +18,11 @@ const Category = (sequelize) => {
         type: DataTypes.STRING,
         allowNull: false,
         unique: true
+      },
+      position: {
+        type: DataTypes.INTEGER,
+        allowNull: false,
+        default: 0
       }
     },
     {
