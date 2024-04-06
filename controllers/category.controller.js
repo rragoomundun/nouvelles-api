@@ -38,7 +38,7 @@ const getAllCategories = asyncHandler(async (req, res, next) => {
   const categories = await dbUtil.Category.findAll();
   const categoriesSorted = categories.sort((category1, category2) => category1.position - category2.position);
 
-  res.status(httpStatus.OK).json(categories);
+  res.status(httpStatus.OK).json(categoriesSorted);
 });
 
 export { getAllCategories };

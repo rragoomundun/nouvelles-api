@@ -20,7 +20,7 @@ const Article = (sequelize) => {
         unique: true
       },
       content: {
-        type: DataTypes.STRING(500),
+        type: DataTypes.TEXT,
         allowNull: false,
         unique: true
       },
