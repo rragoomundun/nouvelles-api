@@ -12,9 +12,9 @@ import dbUtil from '../utils/db.util.js';
  * @apiDescription Get all categories
  *
  * @apiSuccess (Success (200)) {Int} id The category id
- * @apiSUccess (Success (200)) {String} name The category name
- * @apiSUccess (Success (200)) {String} label The category label
- * @apiSUccess (Success (200)) {Int} position The category position
+ * @apiSuccess (Success (200)) {String} name The category name
+ * @apiSuccess (Success (200)) {String} label The category label
+ * @apiSuccess (Success (200)) {Int} position The category position
  *
  * @apiSuccessExample Success Example
  * [
@@ -38,7 +38,7 @@ const getAllCategories = asyncHandler(async (req, res, next) => {
   const categories = await dbUtil.Category.findAll();
   const categoriesSorted = categories.sort((category1, category2) => category1.position - category2.position);
 
-  res.status(httpStatus.OK).json(categories);
+  res.status(httpStatus.OK).json(categoriesSorted);
 });
 
 export { getAllCategories };
