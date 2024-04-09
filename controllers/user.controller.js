@@ -11,7 +11,7 @@ import dbUtil from '../utils/db.util.js';
  *
  * @apiDescription Get the current user if authorized
  *
- * @apiSuccess (Success (200)) {Int} id The user's id
+ * @apiSuccess (Success (200)) {Number} id The user's id
  * @apiSuccess (Success (200)) {String} name The user's name
  * @apiSuccess (Success (200)) {String} email The user's email address
  * @apiSuccess (Success (200)) {String} image The user's profile image

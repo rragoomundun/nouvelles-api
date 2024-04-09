@@ -2,10 +2,85 @@ import httpStatus from 'http-status-codes';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
+import ErrorResponse from '../classes/errorResponse.class.js';
+
 import dbUtil from '../utils/db.util.js';
 import validatorUtil from '../utils/validator.util.js';
 
 const PAGE_LIMIT = 20;
+
+/**
+ * @api {GET} /article/:articleId Get Article
+ * @apiGroup Articles
+ * @apiName ArticlesGetArticle
+ *
+ * @apiDescription Get a specific article
+ *
+ * @apiParam {Number} articleId The article id
+ *
+ * @apiSuccess (Success (200)) {Number} id The article id
+ * @apiSuccess (Success (200)) {String} title The article title
+ * @apiSuccess (Success (200)) {String} image The article image
+ * @apiSuccess (Success (200)) {String} content The article content
+ * @apiSuccess (Success (200)) {Date} date The article published date
+ * @apiSuccess (Success (200)) {Date} updated_date The article updated date
+ * @apiSuccess (Success (200)) {Number} author.id The article's author id
+ * @apiSuccess (Success (200)) {String} author.name The article's author name
+ * @apiSuccess (Success (200)) {String} author.image The article's author image
+ *
+ * @apiSuccessExample Success Example
+ * {
+ *    "id": 10,
+ *    "title": "Article 8",
+ *    "image": "https://w.wallhaven.cc/full/nr/wallhaven-nrr8yq.jpg",
+ *    "content": "Lorem ipsum dolor sit amet...",
+ *    "date": "2024-04-06T07:55:55.179Z",
+ *    "updated_date": null,
+ *    "user": {
+ *      "id": 1,
+ *      "name": "Raphael",
+ *      "image": null
+ *    }
+ * }
+ *
+ * @apiError (Error (400)) NOT_FOUND The article cannot be found
+ *
+ * @apiPermission Public
+ */
+const getArticle = asyncHandler(async (req, res, next) => {
+  const { articleId } = req.params;
+
+  try {
+    let article = await dbUtil.Article.findOne({
+      attributes: ['id', 'title', 'image', 'content', 'date', 'updated_date'],
+      include: [
+        {
+          model: dbUtil.User,
+          required: true
+        }
+      ],
+      where: { id: articleId }
+    });
+
+    if (article === null) {
+      throw Error();
+    }
+
+    article = article.dataValues;
+
+    article.author = {
+      id: article.User.id,
+      name: article.User.name,
+      image: article.User.image
+    };
+
+    delete article.User;
+
+    res.status(httpStatus.OK).json(article);
+  } catch {
+    return next(new ErrorResponse('Cannot find article', httpStatus.NOT_FOUND, 'NOT_FOUND'));
+  }
+});
 
 /**
  * @api {GET} /article/by-category Get Articles By Category
@@ -14,7 +89,7 @@ const PAGE_LIMIT = 20;
  *
  * @apiDescription Get articles by a specific category.
  *
- * @apiSuccess (Success (200)) {Int} id The article id
+ * @apiSuccess (Success (200)) {Number} id The article id
  * @apiSuccess (Success (200)) {String} title The article title
  * @apiSuccess (Success (200)) {String} image The article image
  *
@@ -33,7 +108,7 @@ const PAGE_LIMIT = 20;
  * ]
  *
  * @apiQuery {String} category The category label
- * @apiQuery {Int} [page] The page
+ * @apiQuery {Number} [page] The page
  *
  * @apiError (Error (400)) NO_CATEGORY There is no category parameter
  *
@@ -86,8 +161,8 @@ const getArticlesByCategory = asyncHandler(async (req, res, next) => {
  *
  * @apiQuery {String} category The category label
  *
- * @apiSuccess (Success (200)) {Int} totalArticles The number of articles in a category
- * @apiSuccess (Success (200)) {Int} nbPages The number of pages in a category
+ * @apiSuccess (Success (200)) {Number} totalArticles The number of articles in a category
+ * @apiSuccess (Success (200)) {Number} nbPages The number of pages in a category
  *
  * @apiSuccessExample Success Example
  * {
@@ -124,4 +199,4 @@ const getArticlesByCategoryMeta = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json({ totalArticles, nbPages });
 });
 
-export { getArticlesByCategory, getArticlesByCategoryMeta };
+export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta };
