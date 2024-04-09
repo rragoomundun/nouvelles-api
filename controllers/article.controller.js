@@ -14,7 +14,7 @@ const PAGE_LIMIT = 20;
  * @apiGroup Articles
  * @apiName ArticlesGetArticle
  *
- * @apiDescription Get a specific article
+ * @apiDescription Get a specific article.
  *
  * @apiParam {Number} articleId The article id
  *
@@ -199,4 +199,31 @@ const getArticlesByCategoryMeta = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json({ totalArticles, nbPages });
 });
 
-export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta };
+/**
+ * @api {PUT} /article/:articleId/viewed Article Viewed
+ * @apiGroup Articles
+ * @apiName ArticlesViewed
+ *
+ * @apiDescription Increment the number of views of an article.
+ *
+ * @apiParam {Number} articleId The article id
+ *
+ * @apiError (Error (400)) NOT_FOUND The article cannot be found
+ *
+ * @apiPermission Public
+ */
+const articleViewed = asyncHandler(async (req, res, next) => {
+  const { articleId } = req.params;
+
+  let article = await dbUtil.Article.findOne({ where: { id: articleId } });
+
+  if (article === null) {
+    return next(new ErrorResponse('Cannot find article', httpStatus.NOT_FOUND, 'NOT_FOUND'));
+  }
+
+  await article.increment('views', { by: 1 });
+
+  res.status(httpStatus.OK).json({});
+});
+
+export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta, articleViewed };
