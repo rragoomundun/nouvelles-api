@@ -19,7 +19,10 @@
     "Categories",
     "CategoriesGetAll",
     "Home",
-    "HomeContent"
+    "HomeContent",
+    "Articles",
+    "ArticlesByCategory",
+    "ArticlesByCategoryMeta"
   ],
   "template": {
     "forceLanguage": "en",
