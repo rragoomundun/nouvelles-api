@@ -5,6 +5,7 @@ import asyncHandler from '../middlewares/async.middleware.js';
 import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
+import categoryUtil from '../utils/category.util.js';
 import validatorUtil from '../utils/validator.util.js';
 
 const PAGE_LIMIT = 20;
@@ -111,6 +112,7 @@ const getArticle = asyncHandler(async (req, res, next) => {
  * @apiQuery {Number} [page] The page
  *
  * @apiError (Error (400)) NO_CATEGORY There is no category parameter
+ * @apiError (Error (404)) NOT_FOUND The category cannot be found
  *
  * @apiPermission Public
  */
@@ -132,13 +134,7 @@ const getArticlesByCategory = asyncHandler(async (req, res, next) => {
 
   offset = page * PAGE_LIMIT;
 
-  const categoryId = (
-    await dbUtil.Category.findOne({
-      where: {
-        label: category
-      }
-    })
-  ).dataValues.id;
+  const categoryId = await categoryUtil.getCategoryId(category);
   const articles = await dbUtil.Article.findAll({
     attributes: ['id', 'title', 'image'],
     where: {
@@ -171,6 +167,7 @@ const getArticlesByCategory = asyncHandler(async (req, res, next) => {
  * }
  *
  * @apiError (Error (400)) NO_CATEGORY There is no category parameter
+ * @apiError (Error (404)) NOT_FOUND The category cannot be found
  *
  * @apiPermission Public
  */
@@ -182,13 +179,10 @@ const getArticlesByCategoryMeta = asyncHandler(async (req, res, next) => {
   }
 
   const { category } = req.query;
-  const categoryId = (
-    await dbUtil.Category.findOne({
-      where: {
-        label: category
-      }
-    })
-  ).dataValues.id;
+  const categoryData = await categoryUtil.getCategoryFromLabel(category);
+  const categoryId = categoryData.dataValues.id;
+  const categoryName = categoryData.dataValues.name;
+
   const totalArticles = await dbUtil.Article.count({
     where: {
       category_id: categoryId
@@ -196,7 +190,7 @@ const getArticlesByCategoryMeta = asyncHandler(async (req, res, next) => {
   });
   const nbPages = Math.ceil(totalArticles / PAGE_LIMIT);
 
-  res.status(httpStatus.OK).json({ totalArticles, nbPages });
+  res.status(httpStatus.OK).json({ categoryName, totalArticles, nbPages });
 });
 
 /**

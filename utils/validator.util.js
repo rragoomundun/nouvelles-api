@@ -12,6 +12,10 @@ const validate = (req) => {
 
   const error = result.array()[0].msg.split(';');
 
+  if (error.length === 3) {
+    return new ErrorResponse(error[0], httpStatus[error[2]], error[1]);
+  }
+
   return new ErrorResponse(error[0], httpStatus.BAD_REQUEST, error[1]);
 };
 

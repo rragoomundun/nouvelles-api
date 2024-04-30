@@ -73,7 +73,10 @@ const getContent = asyncHandler(async (req, res, next) => {
           [Op.eq]: category.id
         }
       },
-      order: [['date', 'DESC']],
+      order: [
+        ['date', 'DESC'],
+        ['views', 'DESC']
+      ],
       limit: 4
     });
 
