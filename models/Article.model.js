@@ -30,6 +30,11 @@ const Article = (sequelize) => {
       updated_date: {
         type: DataTypes.DATE
       },
+      published: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
+      },
       views: {
         type: DataTypes.INTEGER,
         allowNull: false,

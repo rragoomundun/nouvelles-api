@@ -44,7 +44,7 @@ const PAGE_LIMIT = 20;
  *    }
  * }
  *
- * @apiError (Error (400)) NOT_FOUND The article cannot be found
+ * @apiError (Error (404)) NOT_FOUND The article cannot be found
  *
  * @apiPermission Public
  */
@@ -60,7 +60,7 @@ const getArticle = asyncHandler(async (req, res, next) => {
           required: true
         }
       ],
-      where: { id: articleId }
+      where: { id: articleId, published: true }
     });
 
     if (article === null) {
@@ -138,7 +138,8 @@ const getArticlesByCategory = asyncHandler(async (req, res, next) => {
   const articles = await dbUtil.Article.findAll({
     attributes: ['id', 'title', 'image'],
     where: {
-      category_id: categoryId
+      category_id: categoryId,
+      published: true
     },
     order: [['date', 'DESC']],
     offset,

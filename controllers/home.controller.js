@@ -34,7 +34,8 @@ const getContent = asyncHandler(async (req, res, next) => {
       where: {
         id: {
           [Op.in]: frontPageArticlesIds
-        }
+        },
+        published: true
       }
     })
   )
@@ -71,7 +72,8 @@ const getContent = asyncHandler(async (req, res, next) => {
       where: {
         category_id: {
           [Op.eq]: category.id
-        }
+        },
+        published: true
       },
       order: [
         ['date', 'DESC'],
@@ -95,6 +97,9 @@ const getContent = asyncHandler(async (req, res, next) => {
           required: true
         }
       ],
+      where: {
+        published: true
+      },
       order: [
         ['date', 'DESC'],
         ['views', 'DESC']
