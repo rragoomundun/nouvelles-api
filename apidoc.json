@@ -24,7 +24,8 @@
     "ArticlesGetArticle",
     "ArticlesViewed",
     "ArticlesByCategory",
-    "ArticlesByCategoryMeta"
+    "ArticlesByCategoryMeta",
+    "ArticlesPost"
   ],
   "template": {
     "forceLanguage": "en",

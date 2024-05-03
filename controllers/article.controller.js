@@ -221,4 +221,23 @@ const articleViewed = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json({});
 });
 
-export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta, articleViewed };
+/**
+ * @api {POST} /article Post Article
+ * @apiGroup Articles
+ * @apiName ArticlesPost
+ *
+ * @apiDescription Post an article.
+ *
+ * @apiBody {Number} [id] Article's id
+ * @apiBody {String} title Article's title
+ * @apiBody {String} image Article's image
+ * @apiBody {String} content Article's content
+ * @apiBody {Boolean} published Article's published state
+ *
+ * @apiPermission Private
+ */
+const postArticle = asyncHandler(async (req, res, next) => {
+  res.status(httpStatus.OK).json({});
+});
+
+export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta, articleViewed, postArticle };
