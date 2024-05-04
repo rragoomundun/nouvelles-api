@@ -17,7 +17,7 @@ const s3 = new AWS.S3({
  *
  * @apiDescription Upload a file to S3. File size limited to 10 MB.
  *
- * @apiParam {File{10}} file The file to be uploaded.
+ * @apiBody {File{10}} file The file to be uploaded.
  *
  * @apiError (Error (400)) UPLOAD_FAILED Cannot upload file
  *
