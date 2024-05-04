@@ -221,4 +221,85 @@ const articleViewed = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json({});
 });
 
-export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta, articleViewed };
+/**
+ * @api {POST} /article Post Article
+ * @apiGroup Articles
+ * @apiName ArticlesPost
+ *
+ * @apiDescription Post an article.
+ *
+ * @apiBody {Number} [id] Article's id
+ * @apiBody {String} title Article's title
+ * @apiBody {String} image Article's image
+ * @apiBody {String} content Article's content
+ * @apiBody {String} category Article's category
+ * @apiBody {Boolean} published Article's published state
+ *
+ * @apiParamExample {json} Body Example
+ * {
+ *   "title": "New Article",
+ *   "image": "https://w.wallhaven.cc/full/nz/wallhaven-nzy6g4.jpg",
+ *   "content": "New article's content...",
+ *   "category": "science",
+ *   "published": true
+ * }
+ *
+ * @apiError (Error (400)) WRONG_USER Article is trying to be accessed from a user that doesn't own it
+ * @apiError (Error (404)) NOT_FOUND Cannot find article
+ *
+ * @apiPermission Private
+ */
+const postArticle = asyncHandler(async (req, res, next) => {
+  const { id, title, image, content, category } = req.body;
+  let { published } = req.body;
+  let article;
+
+  published = Boolean(published);
+
+  if (id) {
+    article = await dbUtil.Article.findOne({ where: { id } });
+
+    if (article === null) {
+      return next(new ErrorResponse('Article cannot be found', httpStatus.NOT_FOUND, 'NOT_FOUND'));
+    }
+
+    if (article.dataValues.user_id !== req.user.id) {
+      return next(
+        new ErrorResponse(
+          `Article is trying to be accessed from a user that doesn't own it`,
+          httpStatus.BAD_REQUEST,
+          'WRONG_USER'
+        )
+      );
+    }
+  }
+
+  const categoryId = (await dbUtil.Category.findOne({ where: { label: category } })).dataValues.id;
+
+  if (article) {
+    const updatedData = { title, image, content, published, category_id: categoryId };
+
+    if (published === true) {
+      if (article.dataValues.date === null) {
+        updatedData.date = new Date();
+      } else {
+        updatedData.updated_date = new Date();
+      }
+    }
+
+    await dbUtil.Article.update(updatedData, { where: { id } });
+    return res.status(httpStatus.OK).json({ msg: 'Article updated' });
+  }
+
+  const data = { title, image, content, published, user_id: req.user.id, category_id: categoryId };
+
+  if (published === true) {
+    data.date = new Date();
+  }
+
+  await dbUtil.Article.create(data);
+
+  res.status(httpStatus.OK).json({ msg: 'Article published' });
+});
+
+export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta, articleViewed, postArticle };

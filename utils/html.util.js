@@ -1,5 +1,9 @@
 const sanitize = (string) => {
-  return string.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  if (typeof string === 'string') {
+    return string.replaceAll('<', '&lt;').replaceAll('>', '&gt;');
+  }
+
+  return null;
 };
 
 export default { sanitize };

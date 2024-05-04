@@ -48,6 +48,9 @@ AWS_S3_REGION=s3region
 # AWS S3 Upload Image Bucket Name
 AWS_S3_IMAGE_BUCKET_NAME=s3bucketname
 
+# AWS S3 Upload Image Bucket Directory
+AWS_S3_IMAGE_BUCKET_FOLDER=directory
+
 
 # From email name
 FROM_NAME=Nouvelles
