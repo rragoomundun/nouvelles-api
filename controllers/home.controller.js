@@ -101,8 +101,8 @@ const getContent = asyncHandler(async (req, res, next) => {
         published: true
       },
       order: [
-        ['date', 'DESC'],
-        ['views', 'DESC']
+        ['views', 'DESC'],
+        ['date', 'DESC']
       ],
       limit: 9
     })

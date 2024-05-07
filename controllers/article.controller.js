@@ -53,10 +53,14 @@ const getArticle = asyncHandler(async (req, res, next) => {
 
   try {
     let article = await dbUtil.Article.findOne({
-      attributes: ['id', 'title', 'image', 'content', 'date', 'updated_date'],
+      attributes: ['id', 'title', 'image', 'content', 'published', 'date', 'updated_date'],
       include: [
         {
           model: dbUtil.User,
+          required: true
+        },
+        {
+          model: dbUtil.Category,
           required: true
         }
       ],
@@ -69,12 +73,14 @@ const getArticle = asyncHandler(async (req, res, next) => {
 
     article = article.dataValues;
 
+    article.category = article.Category.label;
     article.author = {
       id: article.User.id,
       name: article.User.name,
       image: article.User.image
     };
 
+    delete article.Category;
     delete article.User;
 
     res.status(httpStatus.OK).json(article);
@@ -302,4 +308,41 @@ const postArticle = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json({ msg: 'Article published' });
 });
 
-export { getArticle, getArticlesByCategory, getArticlesByCategoryMeta, articleViewed, postArticle };
+/**
+ * @api {GET} /article/:articleId/is-user-owner Is User Owner
+ * @apiGroup Articles
+ * @apiName ArticlesIsUserOwner
+ *
+ * @apiDescription Determine if a user is the owner of an article.
+ *
+ * @apiParam {Number} articleId The article id
+ *
+ * @apiError (Error (400)) NOT_OWNER The user isn't the owner of the article
+ * @apiError (Error (404)) NOT_FOUND The article cannot be found
+ *
+ * @apiPermission Private
+ */
+const isArticleCurrentUserOwner = asyncHandler(async (req, res, next) => {
+  const { articleId } = req.params;
+
+  let article = await dbUtil.Article.findOne({ where: { id: articleId } });
+
+  if (article === null) {
+    return next(new ErrorResponse('Cannot find article', httpStatus.NOT_FOUND, 'NOT_FOUND'));
+  }
+
+  if (article.dataValues.user_id !== req.user.id) {
+    return next(new ErrorResponse('Not article owner', httpStatus.BAD_REQUEST, 'NOT_OWNER'));
+  }
+
+  res.status(httpStatus.OK).json({});
+});
+
+export {
+  getArticle,
+  getArticlesByCategory,
+  getArticlesByCategoryMeta,
+  articleViewed,
+  postArticle,
+  isArticleCurrentUserOwner
+};

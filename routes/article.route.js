@@ -5,7 +5,8 @@ import {
   articleViewed,
   getArticlesByCategory,
   getArticlesByCategoryMeta,
-  postArticle
+  postArticle,
+  isArticleCurrentUserOwner
 } from '../controllers/article.controller.js';
 
 import { articleByCategoryValidator } from '../validators/article.validator.js';
@@ -19,6 +20,7 @@ router
   .get('/by-category/meta', articleByCategoryValidator, getArticlesByCategoryMeta)
   .get('/:articleId', getArticle)
   .put('/:articleId/viewed', articleViewed)
-  .post('/', protect, protectRole(['admin', 'redacteur']), postArticle);
+  .post('/', protect, protectRole(['admin', 'redacteur']), postArticle)
+  .get('/:articleId/is-user-owner', protect, isArticleCurrentUserOwner);
 
 export default router;
