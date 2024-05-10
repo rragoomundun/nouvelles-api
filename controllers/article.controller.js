@@ -251,6 +251,7 @@ const articleViewed = asyncHandler(async (req, res, next) => {
  * }
  *
  * @apiError (Error (400)) WRONG_USER Article is trying to be accessed from a user that doesn't own it
+ * @apiError (Error (400)) EDIT Cannot edit article
  * @apiError (Error (404)) NOT_FOUND Cannot find article
  *
  * @apiPermission Private
@@ -293,8 +294,13 @@ const postArticle = asyncHandler(async (req, res, next) => {
       }
     }
 
-    await dbUtil.Article.update(updatedData, { where: { id } });
-    return res.status(httpStatus.OK).json({ msg: 'Article updated' });
+    const updateResult = await dbUtil.Article.update(updatedData, { where: { id } });
+
+    if (updateResult[0]) {
+      return res.status(httpStatus.OK).json({ msg: 'Article updated' });
+    } else {
+      return next(new ErrorResponse('Cannot update article', httpStatus.BAD_REQUEST, 'EDIT'));
+    }
   }
 
   const data = { title, image, content, published, user_id: req.user.id, category_id: categoryId };
@@ -303,9 +309,9 @@ const postArticle = asyncHandler(async (req, res, next) => {
     data.date = new Date();
   }
 
-  await dbUtil.Article.create(data);
+  const createdArticleId = (await dbUtil.Article.create(data)).dataValues.id;
 
-  res.status(httpStatus.OK).json({ msg: 'Article published' });
+  res.status(httpStatus.OK).json({ id: createdArticleId });
 });
 
 /**
