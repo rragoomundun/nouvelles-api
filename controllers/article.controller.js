@@ -64,10 +64,13 @@ const getArticle = asyncHandler(async (req, res, next) => {
           required: true
         }
       ],
-      where: { id: articleId, published: true }
+      where: { id: articleId }
     });
 
-    if (article === null) {
+    if (
+      article === null ||
+      (article.dataValues.published === false && (req.user === undefined || req.user.id !== article.dataValues.User.id))
+    ) {
       throw Error();
     }
 

@@ -7,13 +7,14 @@ import ErrorResponse from '../classes/errorResponse.class.js';
 
 import dbUtil from '../utils/db.util.js';
 
-// Prevent unauthorized users from accessing route
-const protect = asyncHandler(async (req, res, next) => {
+// Get user from token
+const getUser = async (req) => {
+  let user;
+
   try {
     const { token } = req.cookies;
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
-
-    const user = await dbUtil.User.findOne({
+    const user2 = await dbUtil.User.findOne({
       include: [
         {
           model: dbUtil.Role,
@@ -22,15 +23,41 @@ const protect = asyncHandler(async (req, res, next) => {
       ],
       where: { id: decoded.id }
     });
-    const { id, email, registration_date, name } = user.dataValues;
+    const { id, email, registration_date, name } = user2.dataValues;
 
-    req.user = {
+    user = {
       id,
       email,
       registration_date,
       name,
-      roles: user.dataValues.Roles.map((role) => role.label)
+      roles: user2.dataValues.Roles.map((role) => role.label)
     };
+  } catch {
+    throw new Error();
+  }
+
+  return user;
+};
+
+// Set user in the request object
+const setUser = asyncHandler(async (req, res, next) => {
+  try {
+    const user = await getUser(req);
+
+    req.user = user;
+  } catch {
+    throw null;
+  }
+
+  next();
+});
+
+// Prevent unauthorized users from accessing route
+const protect = asyncHandler(async (req, res, next) => {
+  try {
+    const user = await getUser(req);
+
+    req.user = user;
 
     next();
   } catch {
@@ -51,4 +78,4 @@ const protectRole = (roles) => {
   });
 };
 
-export { protect, protectRole };
+export { setUser, protect, protectRole };
