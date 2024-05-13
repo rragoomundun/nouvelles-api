@@ -11,14 +11,14 @@ import {
 
 import { articleByCategoryValidator } from '../validators/article.validator.js';
 
-import { protect, protectRole } from '../middlewares/auth.middleware.js';
+import { setUser, protect, protectRole } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 router
   .get('/by-category', articleByCategoryValidator, getArticlesByCategory)
   .get('/by-category/meta', articleByCategoryValidator, getArticlesByCategoryMeta)
-  .get('/:articleId', getArticle)
+  .get('/:articleId', setUser, getArticle)
   .put('/:articleId/viewed', articleViewed)
   .post('/', protect, protectRole(['admin', 'redacteur']), postArticle)
   .get('/:articleId/is-user-owner', protect, isArticleCurrentUserOwner);

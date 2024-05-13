@@ -1,5 +1,5 @@
 import httpStatus from 'http-status-codes';
-import { Op } from 'sequelize';
+import { Op, Sequelize } from 'sequelize';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -88,6 +88,16 @@ const getContent = asyncHandler(async (req, res, next) => {
   }
 
   // Most viewed recent articles
+  let minArticleDate = (
+    await dbUtil.Article.findOne({
+      attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'maxDate']],
+      raw: true
+    })
+  ).maxDate;
+
+  minArticleDate = new Date(minArticleDate);
+  minArticleDate.setDate(minArticleDate.getDate() - 7);
+
   const mostViewedArticles = (
     await dbUtil.Article.findAll({
       attributes: ['id', 'title', 'image'],
@@ -98,12 +108,10 @@ const getContent = asyncHandler(async (req, res, next) => {
         }
       ],
       where: {
-        published: true
+        published: true,
+        date: { [Op.gte]: minArticleDate }
       },
-      order: [
-        ['views', 'DESC'],
-        ['date', 'DESC']
-      ],
+      order: [['views', 'DESC']],
       limit: 9
     })
   ).map((article) => ({
