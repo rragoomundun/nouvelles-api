@@ -337,6 +337,19 @@ const authorized = (req, res, next) => {
   res.status(httpStatus.OK).json({});
 };
 
+/**
+ * @api {GET} /auth/authorized-admin-redacteur Authorized Admin Redacteur
+ * @apiGroup Auth
+ * @apiName AuthAuthorizedAdminRedacteur
+ *
+ * @apiDescription Checks if the user token is valid and if the user is either an admin or a redacteur
+ *
+ * @apiPermission Private
+ */
+const authorizedAdminRedacteur = (req, res, next) => {
+  res.status(httpStatus.OK).json({});
+};
+
 // Get token from model, create cookie, and send response
 const sendTokenResponse = async (userId, statusCode, res) => {
   const user = await dbUtil.User.findOne({ where: { id: userId } });
@@ -351,4 +364,13 @@ const sendTokenResponse = async (userId, statusCode, res) => {
   res.status(statusCode).cookie('token', token, options).json({ token });
 };
 
-export { register, registerConfirm, login, logout, forgotPassword, passwordReset, authorized };
+export {
+  register,
+  registerConfirm,
+  login,
+  logout,
+  forgotPassword,
+  passwordReset,
+  authorized,
+  authorizedAdminRedacteur
+};
