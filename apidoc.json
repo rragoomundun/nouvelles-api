@@ -1,6 +1,6 @@
 {
   "name": "Nouvelles API",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Backend API for Nouvelles: information and forum website",
   "title": "Nouvelles API",
   "url": "http://localhost:5000/v1",
@@ -28,6 +28,8 @@
     "ArticlesByCategoryMeta",
     "ArticlesPost",
     "ArticlesIsUserOwner",
+    "Forum",
+    "ForumList",
     "Upload",
     "UploadUpload"
   ],
