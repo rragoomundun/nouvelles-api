@@ -7,20 +7,29 @@ import {
   logout,
   forgotPassword,
   passwordReset,
-  authorized
+  authorized,
+  authorizedAdminRedacteur
 } from '../controllers/auth.controller.js';
 
-import { protect } from '../middlewares/auth.middleware.js';
+import {
+  registerValidator,
+  loginValidator,
+  forgotPasswordValidator,
+  passwordResetValidator
+} from '../validators/auth.validator.js';
+
+import { protect, protectRole } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 router
-  .post('/register', register)
+  .post('/register', registerValidator, register)
   .put('/register/confirm/:confirmationToken', registerConfirm)
-  .post('/login', login)
+  .post('/login', loginValidator, login)
   .get('/logout', logout)
-  .post('/password/forgot', forgotPassword)
-  .put('/password/reset/:resetPasswordToken', passwordReset)
-  .get('/authorized', protect, authorized);
+  .post('/password/forgot', forgotPasswordValidator, forgotPassword)
+  .put('/password/reset/:resetPasswordToken', passwordResetValidator, passwordReset)
+  .get('/authorized', protect, authorized)
+  .get('/authorized-admin-redacteur', protect, protectRole(['admin', 'redacteur']), authorizedAdminRedacteur);
 
 export default router;

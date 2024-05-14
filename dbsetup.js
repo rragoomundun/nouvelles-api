@@ -6,6 +6,7 @@ await dbUtil.User.sync({ force: true });
 await dbUtil.Token.sync({ force: true });
 await dbUtil.Category.sync({ force: true });
 await dbUtil.Article.sync({ force: true });
+await dbUtil.FrontPage.sync({ force: true });
 await dbUtil.Role.sync({ force: true });
 await dbUtil.UserRole.sync({ force: true });
 await dbUtil.Forum.sync({ force: true });

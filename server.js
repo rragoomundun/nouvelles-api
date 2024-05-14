@@ -1,6 +1,7 @@
 import express from 'express';
 import morgan from 'morgan';
 import colors from 'colors';
+import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import helmet from 'helmet';
 import hpp from 'hpp';
@@ -14,6 +15,25 @@ const app = express();
 if (process.env.NODE_ENV === 'dev') {
   app.use(morgan('dev'));
 }
+
+// Enable CORS
+const origin = [];
+
+if (process.env.NODE_ENV === 'dev') {
+  origin.push(
+    /http:\/\/localhost:.*/,
+    /https:\/\/localhost:.*/,
+    /http:\/\/127\.0\.0\.1:.*/,
+    /https:\/\/127\.0\.0\.1:.*/
+  );
+}
+
+app.use(
+  cors({
+    origin,
+    credentials: true
+  })
+);
 
 // Body parser
 app.use(express.json());
@@ -48,10 +68,20 @@ const apiPrefix = '/v1';
 // Route files
 import apiRoute from './routes/api.route.js';
 import authRoute from './routes/auth.route.js';
+import userRoute from './routes/user.route.js';
+import categoryRoute from './routes/category.route.js';
+import homeRoute from './routes/home.route.js';
+import articleRoute from './routes/article.route.js';
+import uploadRoute from './routes/upload.route.js';
 
 // Mount routers
 app.use(`${apiPrefix}/api`, apiRoute);
 app.use(`${apiPrefix}/auth`, authRoute);
+app.use(`${apiPrefix}/user`, userRoute);
+app.use(`${apiPrefix}/category`, categoryRoute);
+app.use(`${apiPrefix}/home`, homeRoute);
+app.use(`${apiPrefix}/article`, articleRoute);
+app.use(`${apiPrefix}/upload`, uploadRoute);
 
 app.use(errorMiddleware);
 

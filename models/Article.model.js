@@ -20,7 +20,7 @@ const Article = (sequelize) => {
         unique: true
       },
       content: {
-        type: DataTypes.STRING(500),
+        type: DataTypes.TEXT,
         allowNull: false,
         unique: true
       },
@@ -29,6 +29,11 @@ const Article = (sequelize) => {
       },
       updated_date: {
         type: DataTypes.DATE
+      },
+      published: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: false
       },
       views: {
         type: DataTypes.INTEGER,

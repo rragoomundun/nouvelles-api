@@ -4,6 +4,7 @@ import User from '../models/User.model.js';
 import Token from '../models/Token.model.js';
 import Category from '../models/Category.model.js';
 import Article from '../models/Article.model.js';
+import FrontPage from '../models/FrontPage.model.js';
 import Role from '../models/Role.model.js';
 import UserRole from '../models/UserRole.model.js';
 import Forum from '../models/Forum.model.js';
@@ -32,6 +33,7 @@ db.User = User(sequelize);
 db.Token = Token(sequelize);
 db.Category = Category(sequelize);
 db.Article = Article(sequelize);
+db.FrontPage = FrontPage(sequelize, db.Article);
 db.Role = Role(sequelize);
 db.UserRole = UserRole(sequelize, db.User, db.Role);
 db.Forum = Forum(sequelize);
@@ -77,6 +79,19 @@ db.Article.belongsTo(db.Category, {
   foreignKey: {
     allowNull: false,
     name: 'category_id'
+  }
+});
+
+db.Article.hasOne(db.FrontPage, {
+  foreignKey: {
+    allowNull: false,
+    name: 'article_id'
+  }
+});
+db.FrontPage.belongsTo(db.Article, {
+  foreignKey: {
+    allowNull: false,
+    name: 'article_id'
   }
 });
 
