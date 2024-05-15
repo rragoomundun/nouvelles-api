@@ -49,7 +49,7 @@ const getForums = asyncHandler(async (req, res, next) => {
  * @apiGroup Forum
  * @apiName ForumNewDiscussion
  *
- * @apiDescription Create a new discussion
+ * @apiDescription Create a new discussion.
  *
  * @apiBody {String} name The discussion name
  * @apiBody {String} message The discussion first message
@@ -111,4 +111,45 @@ const newDiscussion = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.CREATED).json(result);
 });
 
-export { getForums, newDiscussion };
+/**
+ * @api {POST} /forum/discussion/:id Answer Discussion
+ * @apiGroup Forum
+ * @apiName ForumAnswerDiscussion
+ *
+ * @apiDescription Answer to a discussion.
+ *
+ * @apiParam {Number} id The discussion id
+ *
+ * @apiBody {String} message The new message
+ *
+ * @apiParamExample {json} Body Example
+ * {
+ *   "message": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua."
+ * }
+ *
+ * @apiError (Error (400)) DISCUSSION_INCORRECT The discussion id is incorrect
+ * @apiError (Error (400)) DISCUSSION_CLOSED The discussion is closed to new answers
+ * @apiError (Error (400)) NO_MESSAGE There is no message
+ *
+ * @apiPermission Private
+ */
+const answerDiscussion = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { id } = req.params;
+  const { message } = req.body;
+  const discussion = await dbUtil.Discussion.findOne({ where: { id }, raw: true });
+
+  if (discussion.open === false) {
+    return next(new ErrorResponse('Discussion is closed to new answers', httpStatus.BAD_REQUEST, 'DISCUSSION_CLOSED'));
+  }
+
+  await dbUtil.Message.create({ content: message, discussion_id: discussion.id, user_id: req.user.id });
+  res.status(httpStatus.CREATED).end();
+});
+
+export { getForums, newDiscussion, answerDiscussion };

@@ -1,4 +1,4 @@
-import { body } from 'express-validator';
+import { body, param } from 'express-validator';
 
 import dbUtil from '../utils/db.util.js';
 
@@ -26,4 +26,15 @@ const newDiscussionValidator = [
     })
 ];
 
-export { newDiscussionValidator };
+const answerDiscussionValidator = [
+  param('id').custom(async (value) => {
+    const discussionExists = await dbUtil.Discussion.findOne({ where: { id: value } });
+
+    if (discussionExists === null) {
+      throw new Error('This discussion does not exists;DISCUSSION_INCORRECT');
+    }
+  }),
+  body('message').notEmpty().withMessage('Please add a message;NO_MESSAGE')
+];
+
+export { newDiscussionValidator, answerDiscussionValidator };

@@ -14,6 +14,11 @@ const Discussion = (sequelize) => {
         allowNull: false,
         unique: true
       },
+      open: {
+        type: DataTypes.BOOLEAN,
+        allowNull: false,
+        defaultValue: true
+      },
       creation_date: {
         type: DataTypes.DATE,
         allowNull: false,
