@@ -1,8 +1,8 @@
 import { DataTypes, Sequelize } from 'sequelize';
 
-const Topic = (sequelize) => {
-  const Topic = sequelize.define(
-    'Topic',
+const Discussion = (sequelize) => {
+  const Discussion = sequelize.define(
+    'Discussion',
     {
       id: {
         type: DataTypes.INTEGER,
@@ -21,12 +21,12 @@ const Topic = (sequelize) => {
       }
     },
     {
-      tableName: 'topics',
+      tableName: 'discussions',
       timestamps: false
     }
   );
 
-  return Topic;
+  return Discussion;
 };
 
-export default Topic;
+export default Discussion;
