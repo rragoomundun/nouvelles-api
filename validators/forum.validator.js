@@ -2,6 +2,14 @@ import { body, param } from 'express-validator';
 
 import dbUtil from '../utils/db.util.js';
 
+const discussionExists = async (id) => {
+  const discussionExists = await dbUtil.Discussion.findOne({ where: { id } });
+
+  if (discussionExists === null) {
+    throw new Error('This discussion does not exists;DISCUSSION_INCORRECT');
+  }
+};
+
 const newDiscussionValidator = [
   body('name')
     .notEmpty()
@@ -28,13 +36,23 @@ const newDiscussionValidator = [
 
 const answerDiscussionValidator = [
   param('id').custom(async (value) => {
-    const discussionExists = await dbUtil.Discussion.findOne({ where: { id: value } });
-
-    if (discussionExists === null) {
-      throw new Error('This discussion does not exists;DISCUSSION_INCORRECT');
-    }
+    await discussionExists(value);
   }),
   body('message').notEmpty().withMessage('Please add a message;NO_MESSAGE')
 ];
 
-export { newDiscussionValidator, answerDiscussionValidator };
+const editMessageValidator = [
+  param('discussionId').custom(async (value) => {
+    await discussionExists(value);
+  }),
+  param('messageId').custom(async (value) => {
+    const messageExists = await dbUtil.Message.findOne({ where: { id: value } });
+
+    if (messageExists === null) {
+      throw new Error('This message does not exists;MESSAGE_INCORRECT');
+    }
+  }),
+  body('message').notEmpty().withMessage('There is no edited message;NO_MESSAGE')
+];
+
+export { newDiscussionValidator, answerDiscussionValidator, editMessageValidator };

@@ -152,4 +152,48 @@ const answerDiscussion = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.CREATED).end();
 });
 
-export { getForums, newDiscussion, answerDiscussion };
+/**
+ * @api {PUT} /forum/discussion/:discussionId/message/:messageId Edit Message
+ * @apiGroup Forum
+ * @apiName ForumEditMessage
+ *
+ * @apiParam {Number} discussionId The discussion id
+ * @apiParam {Number} messageId The message id
+ *
+ * @apiBody {String} message The edited message
+ *
+ * @apiParamExample {json} Body Examle
+ * {
+ *   "message": "Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur."
+ * }
+ *
+ * @apiError (Error (400)) DISCUSSION_INCORRECT The discussion id is incorrect
+ * @apiError (Error (400)) MESSAGE_INCORRECT The message id is incorrect
+ * @apiError (Error (400)) MESSAGE_NOT_OWNER The user isn't the owner of the message
+ * @apiError (Error (400)) NO_MESSAGE There is no message
+ *
+ * @apiPermission Private
+ */
+const editMessage = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { messageId } = req.params;
+  const messageInstance = await dbUtil.Message.findOne({ where: { id: messageId }, raw: true });
+
+  if (messageInstance.user_id !== req.user.id) {
+    return next(
+      new ErrorResponse('The user is not the owner of the message', httpStatus.BAD_REQUEST, 'MESSAGE_NOT_OWNER')
+    );
+  }
+
+  const { message } = req.body;
+
+  await dbUtil.Message.update({ content: message }, { where: { id: messageId } });
+  res.status(httpStatus.OK).end();
+});
+
+export { getForums, newDiscussion, answerDiscussion, editMessage };
