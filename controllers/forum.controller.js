@@ -196,4 +196,76 @@ const editMessage = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).end();
 });
 
-export { getForums, newDiscussion, answerDiscussion, editMessage };
+/**
+ * @api {PUT} /forum/discussion/:discussionId/message/:messageId/like Like Message
+ * @apiGroup Forum
+ * @apiName ForumLikeMessage
+ *
+ * @apiParam {Number} discussionId The discussion id
+ * @apiParam {Number} messageId The message id
+ *
+ * @apiDescription Like a message.
+ *
+ * @apiPermission Private
+ */
+const likeMessage = asyncHandler(async (req, res, next) => {
+  const { messageId } = req.params;
+  const messageLike = await dbUtil.MessageLike.findOne({ where: { message_id: messageId, user_id: req.user.id } });
+
+  if (messageLike) {
+    messageLike.like = 'like';
+    await messageLike.save();
+  } else {
+    await dbUtil.MessageLike.create({ message_id: messageId, user_id: req.user.id, like: 'like' });
+  }
+
+  res.status(httpStatus.OK).end();
+});
+
+/**
+ * @api {PUT} /forum/discussion/:discussionId/message/:messageId/dislike Dislike Message
+ * @apiGroup Forum
+ * @apiName ForumDislikeMessage
+ *
+ * @apiParam {Number} discussionId The discussion id
+ * @apiParam {Number} messageId The message id
+ *
+ * @apiDescription Dislike a message.
+ *
+ * @apiPermission Private
+ */
+const dislikeMessage = asyncHandler(async (req, res, next) => {
+  const { messageId } = req.params;
+  const messageLike = await dbUtil.MessageLike.findOne({ where: { message_id: messageId, user_id: req.user.id } });
+
+  if (messageLike) {
+    messageLike.like = 'dislike';
+    await messageLike.save();
+  } else {
+    await dbUtil.MessageLike.create({ message_id: messageId, user_id: req.user.id, like: 'dislike' });
+  }
+
+  res.status(httpStatus.OK).end();
+});
+
+/**
+ * @api {DELETE} /forum/discussion/:discussionId/message/:messageId/delete-vote Delete Vote
+ * @apiGroup Forum
+ * @apiName ForumDeleteVote
+ *
+ * @apiParam {Number} discussionId The discussion id
+ * @apiParam {Number} messageId The message id
+ *
+ * @apiDescription Delete a message vote.
+ *
+ * @apiPermission Private
+ */
+const deleteVote = asyncHandler(async (req, res, next) => {
+  const { messageId } = req.params;
+
+  await dbUtil.MessageLike.destroy({ where: { message_id: messageId, user_id: req.user.id } });
+
+  res.status(httpStatus.OK).end();
+});
+
+export { getForums, newDiscussion, answerDiscussion, editMessage, likeMessage, dislikeMessage, deleteVote };

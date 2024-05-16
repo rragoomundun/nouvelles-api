@@ -166,14 +166,14 @@ db.Message.belongsToMany(db.User, {
   through: db.MessageLike,
   foreignKey: {
     allowNull: false,
-    name: 'user_id'
+    name: 'message_id'
   }
 });
 db.User.belongsToMany(db.Message, {
   through: db.MessageLike,
   foreignKey: {
     allowNull: false,
-    name: 'message_id'
+    name: 'user_id'
   }
 });
 

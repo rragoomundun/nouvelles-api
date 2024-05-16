@@ -32,6 +32,10 @@
     "ForumList",
     "ForumNewDiscussion",
     "ForumAnswerDiscussion",
+    "ForumEditMessage",
+    "ForumLikeMessage",
+    "ForumDislikeMessage",
+    "ForumDeleteVote",
     "Upload",
     "UploadUpload"
   ],
