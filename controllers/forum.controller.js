@@ -1,4 +1,5 @@
 import httpStatus from 'http-status-codes';
+import { Sequelize } from 'sequelize';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -42,6 +43,71 @@ import validatorUtil from '../utils/validator.util.js';
 const getForums = asyncHandler(async (req, res, next) => {
   const forums = await dbUtil.Forum.findAll({ raw: true });
   res.status(httpStatus.OK).json(forums);
+});
+
+/**
+ * @api {GET} /forum/:forum/discussions Get Discussions
+ * @apiGroup Forum
+ * @apiName ForumGetDiscussions
+ *
+ * @apiDescription Get discussions in a forum.
+ *
+ * @apiParam {String} forum The forum label
+ * @apiQuery {Number} [page] The page
+ *
+ * @apiError (Error (400)) FORUM_INCORRECT The forum is incorrect
+ *
+ * @apiPermission Public
+ */
+const getDiscussions = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const PAGE_LIMIT = 20;
+
+  const { forum } = req.params;
+  let page, offset;
+
+  if (req.query.page) {
+    page = req.query.page - 1;
+  } else {
+    page = 0;
+  }
+
+  offset = page * PAGE_LIMIT;
+
+  const forumId = (await dbUtil.Forum.findOne({ where: { label: forum }, raw: true })).id;
+  const discussions = (
+    await dbUtil.Discussion.findAll({
+      attributes: ['id', 'name', 'open'],
+      include: {
+        model: dbUtil.Message,
+        attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date']],
+        required: true
+      },
+      where: {
+        forum_id: forumId
+      },
+      group: ['Discussion.id'],
+      order: [[Sequelize.fn('MAX', Sequelize.col('date')), 'DESC']],
+      limit: PAGE_LIMIT,
+      offset,
+      raw: true,
+      subQuery: false
+    })
+  ).map((discussion) => {
+    return {
+      id: discussion.id,
+      name: discussion.name,
+      open: discussion.open,
+      last_message_date: discussion['Messages.last_message_date']
+    };
+  });
+
+  res.status(httpStatus.OK).json(discussions);
 });
 
 /**
@@ -268,4 +334,13 @@ const deleteVote = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).end();
 });
 
-export { getForums, newDiscussion, answerDiscussion, editMessage, likeMessage, dislikeMessage, deleteVote };
+export {
+  getForums,
+  getDiscussions,
+  newDiscussion,
+  answerDiscussion,
+  editMessage,
+  likeMessage,
+  dislikeMessage,
+  deleteVote
+};

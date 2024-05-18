@@ -34,6 +34,16 @@ const newDiscussionValidator = [
     })
 ];
 
+const getDiscussionsValidator = [
+  param('forum').custom(async (value) => {
+    const forumExists = await dbUtil.Forum.findOne({ where: { label: value } });
+
+    if (forumExists === null) {
+      throw new Error('This forum does not exists;FORUM_INCORRECT');
+    }
+  })
+];
+
 const answerDiscussionValidator = [
   param('id').custom(async (value) => {
     await discussionExists(value);
@@ -55,4 +65,4 @@ const editMessageValidator = [
   body('message').notEmpty().withMessage('There is no edited message;NO_MESSAGE')
 ];
 
-export { newDiscussionValidator, answerDiscussionValidator, editMessageValidator };
+export { getDiscussionsValidator, newDiscussionValidator, answerDiscussionValidator, editMessageValidator };

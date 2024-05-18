@@ -2,6 +2,7 @@ import express from 'express';
 
 import {
   getForums,
+  getDiscussions,
   newDiscussion,
   answerDiscussion,
   editMessage,
@@ -11,6 +12,7 @@ import {
 } from '../controllers/forum.controller.js';
 
 import {
+  getDiscussionsValidator,
   newDiscussionValidator,
   answerDiscussionValidator,
   editMessageValidator
@@ -22,6 +24,7 @@ const router = express.Router();
 
 router
   .get('/list', getForums)
+  .get('/:forum/discussions', getDiscussionsValidator, getDiscussions)
   .post('/discussion', protect, newDiscussionValidator, newDiscussion)
   .post('/discussion/:id', protect, answerDiscussionValidator, answerDiscussion)
   .put('/discussion/:discussionId/message/:messageId', protect, editMessageValidator, editMessage)
