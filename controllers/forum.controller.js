@@ -18,30 +18,57 @@ import validatorUtil from '../utils/validator.util.js';
  * @apiSuccess (Success (200)) {Number} id The forum id
  * @apiSuccess (Success (200)) {String} label The forum label
  * @apiSuccess (Success (200)) {String} name The forum name
+ * @apiSuccess (Success (200)) {Number} nbDiscussions The number of discussions in the forum
  *
  * @apiSuccessExample Success Example
  * [
  *   {
  *     "id": 1,
  *     "label": "general",
- *     "name": "Général"
+ *     "name": "Général",
+ *     "nbDiscussions": 12,
+ *     "nbMessages": 53
  *   },
  *   {
  *     "id": 2,
  *     "label": "politique",
- *     "name": "Politique"
+ *     "name": "Politique",
+ *     "nbDiscussions": 42,
+ *     "nbMessages": 206
  *   },
  *   {
  *     "id": 3,
  *     "label": "science",
- *     "name": "Science"
+ *     "name": "Science",
+ *     "nbDiscussions": 30,
+ *     "nbMessages": 83
  *   }
  * ]
  *
  * @apiPermission Public
  */
 const getForums = asyncHandler(async (req, res, next) => {
-  const forums = await dbUtil.Forum.findAll({ raw: true });
+  let forums = await dbUtil.Forum.findAll({
+    attributes: [
+      'id',
+      'label',
+      'name',
+      [Sequelize.literal('COUNT(DISTINCT "Discussions"."id")'), 'nbDiscussions'],
+      [Sequelize.literal('COUNT(DISTINCT "Discussions->Messages"."id")'), 'nbMessages']
+    ],
+    include: {
+      model: dbUtil.Discussion,
+      attributes: [],
+      include: {
+        model: dbUtil.Message,
+        attributes: []
+      }
+    },
+    group: ['Forum.id'],
+    order: ['id'],
+    raw: true
+  });
+
   res.status(httpStatus.OK).json(forums);
 });
 
