@@ -44,6 +44,16 @@ const getDiscussionsValidator = [
   })
 ];
 
+const getMessagesInDiscussionValidator = [
+  param('discussionId').custom(async (value) => {
+    const discussionExists = await dbUtil.Discussion.findOne({ where: { id: value } });
+
+    if (discussionExists === null) {
+      throw new Error('This discussion does not exists;DISCUSSION_INCORRECT');
+    }
+  })
+];
+
 const answerDiscussionValidator = [
   param('id').custom(async (value) => {
     await discussionExists(value);
@@ -65,4 +75,10 @@ const editMessageValidator = [
   body('message').notEmpty().withMessage('There is no edited message;NO_MESSAGE')
 ];
 
-export { getDiscussionsValidator, newDiscussionValidator, answerDiscussionValidator, editMessageValidator };
+export {
+  getDiscussionsValidator,
+  getMessagesInDiscussionValidator,
+  newDiscussionValidator,
+  answerDiscussionValidator,
+  editMessageValidator
+};

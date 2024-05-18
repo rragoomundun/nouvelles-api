@@ -111,6 +111,68 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @api {GET} /forum/discussion/:discussionId/messages Get Discussion Messages
+ * @apiGroup Forum
+ * @apiName ForumGetDiscussionsMessages
+ *
+ * @apiDescription Get messages in a discussion.
+ *
+ * @apiParam {Number} discussionId The discussion id
+ * @apiQuery {Number} [page] The page
+ *
+ * @apiError (Error (400)) DISCUSSION_INCORRECT The discussion is incorrect
+ *
+ * @apiPermission Public
+ */
+const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const PAGE_LIMIT = 20;
+
+  const { discussionId } = req.params;
+  let page, offset;
+
+  if (req.query.page) {
+    page = req.query.page - 1;
+  } else {
+    page = 0;
+  }
+
+  offset = page * PAGE_LIMIT;
+
+  const messages = (
+    await dbUtil.Message.findAll({
+      attributes: ['id', 'content', 'date', 'updated_date'],
+      include: {
+        model: dbUtil.User,
+        attributes: ['id', 'name', 'image'],
+        required: true
+      },
+      where: {
+        discussion_id: discussionId
+      },
+      order: ['date'],
+      limit: PAGE_LIMIT,
+      offset
+    })
+  ).map((message) => {
+    return {
+      id: message.id,
+      content: message.content,
+      date: message.date,
+      updated_date: message.updated_date,
+      author: message.User
+    };
+  });
+
+  res.status(httpStatus.OK).json(messages);
+});
+
+/**
  * @api {POST} /forum/discussion New Discussion
  * @apiGroup Forum
  * @apiName ForumNewDiscussion
@@ -258,7 +320,7 @@ const editMessage = asyncHandler(async (req, res, next) => {
 
   const { message } = req.body;
 
-  await dbUtil.Message.update({ content: message }, { where: { id: messageId } });
+  await dbUtil.Message.update({ content: message, updated_date: Date.now() }, { where: { id: messageId } });
   res.status(httpStatus.OK).end();
 });
 
@@ -337,6 +399,7 @@ const deleteVote = asyncHandler(async (req, res, next) => {
 export {
   getForums,
   getDiscussions,
+  getMessagesInDiscussion,
   newDiscussion,
   answerDiscussion,
   editMessage,
