@@ -82,6 +82,13 @@ const getForums = asyncHandler(async (req, res, next) => {
  * @apiParam {String} forum The forum label
  * @apiQuery {Number} [page] The page
  *
+ * @apiSuccess (Success (200)) {Number} id The discussion id
+ * @apiSuccess (Success (200)) {String} name The name of the discussion
+ * @apiSuccess (Success (200)) {Boolean} open The open status of the discussion
+ * @apiSuccess (Success (200)) {Number} nbMessages The number of messages in the discussion
+ * @apiSuccess (Success (200)) {Date} lastMessageDate The date of the last message
+ * @apiSuccess (Success (200)) {Object} author The author of the original post
+ *
  * @apiError (Error (400)) FORUM_INCORRECT The forum is incorrect
  *
  * @apiPermission Public
@@ -110,15 +117,24 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
   const discussions = (
     await dbUtil.Discussion.findAll({
       attributes: ['id', 'name', 'open'],
-      include: {
-        model: dbUtil.Message,
-        attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date']],
-        required: true
-      },
+      include: [
+        {
+          model: dbUtil.Message,
+          attributes: [
+            [Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date'],
+            [Sequelize.fn('COUNT', Sequelize.col('date')), 'nb_messages']
+          ],
+          required: true
+        },
+        {
+          model: dbUtil.User,
+          required: true
+        }
+      ],
       where: {
         forum_id: forumId
       },
-      group: ['Discussion.id'],
+      group: ['Discussion.id', 'User.id'],
       order: [[Sequelize.fn('MAX', Sequelize.col('date')), 'DESC']],
       limit: PAGE_LIMIT,
       offset,
@@ -130,7 +146,13 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
       id: discussion.id,
       name: discussion.name,
       open: discussion.open,
-      last_message_date: discussion['Messages.last_message_date']
+      nbMessages: discussion['Messages.nb_messages'],
+      lastMessageDate: discussion['Messages.last_message_date'],
+      author: {
+        id: discussion['User.id'],
+        name: discussion['User.name'],
+        image: discussion['User.image']
+      }
     };
   });
 
