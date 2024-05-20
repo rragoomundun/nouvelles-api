@@ -19,6 +19,7 @@ import validatorUtil from '../utils/validator.util.js';
  * @apiSuccess (Success (200)) {String} label The forum label
  * @apiSuccess (Success (200)) {String} name The forum name
  * @apiSuccess (Success (200)) {Number} nbDiscussions The number of discussions in the forum
+ * @apiSuccess (Success (200)) {Number} nbMessages The number of messages in the forum
  *
  * @apiSuccessExample Success Example
  * [
