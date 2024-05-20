@@ -169,6 +169,31 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
  * @apiParam {Number} discussionId The discussion id
  * @apiQuery {Number} [page] The page
  *
+ * @apiSuccess (Success (200)) {Number} id The message id
+ * @apiSuccess (Success (200)) {String} content The message content
+ * @apiSuccess (Success (200)) {Date} date The posted date
+ * @apiSuccess (Success (200)) {Date} updated_date The updated date of the message
+ * @apiSuccess (Success (200)) {Object} author The author of the message
+ * @apiSuccess (Success (200)) {Number} nbLikes The number of likes
+ * @apiSuccess (Success (200)) {Number} nbDislikes The number of dislikes
+ *
+ * @apiSuccessExample Success Example
+ * [
+ *   {
+ *     "id": 2,
+ *     "content": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+ *     "date": "2024-05-14T17:00:15.647Z",
+ *     "updated_date": null,
+ *     "author": {
+ *       "id": 2,
+ *       "name": "Elliot",
+ *       "image": null
+ *     },
+ *     "nbLikes": 1,
+ *     "nbDislikes": 1
+ *   }
+ * ]
+ *
  * @apiError (Error (400)) DISCUSSION_INCORRECT The discussion is incorrect
  *
  * @apiPermission Public
