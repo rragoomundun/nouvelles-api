@@ -162,6 +162,12 @@ db.Message.belongsTo(db.User, {
   }
 });
 
+db.Message.hasMany(db.MessageLike, {
+  foreignKey: {
+    name: 'message_id'
+  }
+});
+
 db.Message.belongsToMany(db.User, {
   through: db.MessageLike,
   foreignKey: {

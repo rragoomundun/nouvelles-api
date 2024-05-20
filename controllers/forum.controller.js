@@ -196,11 +196,17 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
   const messages = (
     await dbUtil.Message.findAll({
       attributes: ['id', 'content', 'date', 'updated_date'],
-      include: {
-        model: dbUtil.User,
-        attributes: ['id', 'name', 'image'],
-        required: true
-      },
+      include: [
+        {
+          model: dbUtil.User,
+          attributes: ['id', 'name', 'image'],
+          required: true
+        },
+        {
+          model: dbUtil.MessageLike,
+          attributes: ['like']
+        }
+      ],
       where: {
         discussion_id: discussionId
       },
@@ -209,13 +215,27 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
       offset
     })
   ).map((message) => {
-    return {
+    const formattedMessage = {
       id: message.id,
       content: message.content,
       date: message.date,
       updated_date: message.updated_date,
-      author: message.User
+      author: message.User,
+      nbLikes: 0,
+      nbDislikes: 0
     };
+
+    if (message.MessageLikes.length) {
+      for (const messageLike of message.MessageLikes) {
+        if (messageLike.dataValues.like === 'like') {
+          formattedMessage.nbLikes++;
+        } else {
+          formattedMessage.nbDislikes++;
+        }
+      }
+    }
+
+    return formattedMessage;
   });
 
   res.status(httpStatus.OK).json(messages);
