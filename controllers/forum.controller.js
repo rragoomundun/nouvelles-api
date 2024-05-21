@@ -87,8 +87,26 @@ const getForums = asyncHandler(async (req, res, next) => {
  * @apiSuccess (Success (200)) {String} name The name of the discussion
  * @apiSuccess (Success (200)) {Boolean} open The open status of the discussion
  * @apiSuccess (Success (200)) {Number} nbMessages The number of messages in the discussion
+ * @apiSuccess (Success (200)) {Date} firstMessageDate The date of the first message
  * @apiSuccess (Success (200)) {Date} lastMessageDate The date of the last message
  * @apiSuccess (Success (200)) {Object} author The author of the original post
+ *
+ * @apiSuccessExample Success Example
+ * [
+ *   {
+ *     "id": 6,
+ *     "name": "L'impact de la globalisation",
+ *     "open": true,
+ *     "nbMessages": "22",
+ *     "firstMessageDate": "2024-05-14T17:00:15.647Z",
+ *     "lastMessageDate": "2024-05-18T10:39:49.856Z",
+ *     "author": {
+ *       "id": 2,
+ *       "name": "Raphael",
+ *       "image": null
+ *     }
+ *   }
+ * ]
  *
  * @apiError (Error (400)) FORUM_INCORRECT The forum is incorrect
  *
@@ -122,6 +140,7 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
         {
           model: dbUtil.Message,
           attributes: [
+            [Sequelize.fn('MIN', Sequelize.col('date')), 'first_message_date'],
             [Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date'],
             [Sequelize.fn('COUNT', Sequelize.col('date')), 'nb_messages']
           ],
@@ -148,6 +167,7 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
       name: discussion.name,
       open: discussion.open,
       nbMessages: discussion['Messages.nb_messages'],
+      firstMessageDate: discussion['Messages.first_message_date'],
       lastMessageDate: discussion['Messages.last_message_date'],
       author: {
         id: discussion['User.id'],
