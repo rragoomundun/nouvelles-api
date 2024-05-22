@@ -8,6 +8,8 @@ import ErrorResponse from '../classes/errorResponse.class.js';
 import dbUtil from '../utils/db.util.js';
 import validatorUtil from '../utils/validator.util.js';
 
+const DISCUSSIONS_PAGE_LIMIT = 20;
+
 /**
  * @api {GET} /forum/list List All Forums
  * @apiGroup Forum
@@ -74,6 +76,46 @@ const getForums = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @api {GET} /forum/:forum/meta Get Forum Meta
+ * @apiGroup Forum
+ * @apiName ForumGetMeta
+ *
+ * @apiDescription Get meta information of a forum.
+ *
+ * @apiParam {String} forum The forum label
+ *
+ * @apiSuccess (Success (200)) {Number} nbPages The number of pages in a forum
+ *
+ * @apiSuccessExample Success Example
+ * {
+ *   "nbPages": 4
+ * }
+ *
+ * @apiError (Error (400)) FORUM_INCORRECT The forum is incorrect
+ *
+ * @apiPermission Public
+ */
+const getForumMeta = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { forum } = req.params;
+
+  const forumId = (await dbUtil.Forum.findOne({ where: { label: forum }, raw: true })).id;
+  const totalDiscussions = await dbUtil.Discussion.count({
+    where: {
+      forum_id: forumId
+    }
+  });
+  const nbPages = Math.ceil(totalDiscussions / DISCUSSIONS_PAGE_LIMIT);
+
+  res.status(httpStatus.OK).json({ nbPages });
+});
+
+/**
  * @api {GET} /forum/:forum/discussions Get Discussions
  * @apiGroup Forum
  * @apiName ForumGetDiscussions
@@ -119,8 +161,6 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
     return next(validationError);
   }
 
-  const PAGE_LIMIT = 20;
-
   const { forum } = req.params;
   let page, offset;
 
@@ -130,7 +170,7 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
     page = 0;
   }
 
-  offset = page * PAGE_LIMIT;
+  offset = page * DISCUSSIONS_PAGE_LIMIT;
 
   const forumId = (await dbUtil.Forum.findOne({ where: { label: forum }, raw: true })).id;
   const discussions = (
@@ -156,7 +196,7 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
       },
       group: ['Discussion.id', 'User.id'],
       order: [[Sequelize.fn('MAX', Sequelize.col('date')), 'DESC']],
-      limit: PAGE_LIMIT,
+      limit: DISCUSSIONS_PAGE_LIMIT,
       offset,
       raw: true,
       subQuery: false
@@ -513,6 +553,7 @@ const deleteVote = asyncHandler(async (req, res, next) => {
 
 export {
   getForums,
+  getForumMeta,
   getDiscussions,
   getMessagesInDiscussion,
   newDiscussion,

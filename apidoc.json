@@ -30,6 +30,7 @@
     "ArticlesIsUserOwner",
     "Forum",
     "ForumList",
+    "ForumGetMeta",
     "ForumGetDiscussions",
     "ForumGetDiscussionsMessages",
     "ForumNewDiscussion",
