@@ -54,6 +54,15 @@ const getDiscussionsValidator = [
   })
 ];
 
+const getDiscussionMetaValidator = [
+  param('forum').custom(async (value) => {
+    await forumExists(value);
+  }),
+  param('discussionId').custom(async (value) => {
+    await discussionExists(value);
+  })
+];
+
 const getMessagesInDiscussionValidator = [
   param('discussionId').custom(async (value) => {
     await discussionExists(value);
@@ -84,6 +93,7 @@ const editMessageValidator = [
 export {
   getForumMetaValidator,
   getDiscussionsValidator,
+  getDiscussionMetaValidator,
   getMessagesInDiscussionValidator,
   newDiscussionValidator,
   answerDiscussionValidator,

@@ -4,6 +4,7 @@ import {
   getForums,
   getForumMeta,
   getDiscussions,
+  getDiscussionMeta,
   getMessagesInDiscussion,
   newDiscussion,
   answerDiscussion,
@@ -16,6 +17,7 @@ import {
 import {
   getDiscussionsValidator,
   getForumMetaValidator,
+  getDiscussionMetaValidator,
   getMessagesInDiscussionValidator,
   newDiscussionValidator,
   answerDiscussionValidator,
@@ -30,6 +32,7 @@ router
   .get('/list', getForums)
   .get('/:forum/meta', getForumMetaValidator, getForumMeta)
   .get('/:forum/discussions', getDiscussionsValidator, getDiscussions)
+  .get('/:forum/discussion/:discussionId/meta', getDiscussionMetaValidator, getDiscussionMeta)
   .get('/discussion/:discussionId/messages', getMessagesInDiscussionValidator, getMessagesInDiscussion)
   .post('/discussion', protect, newDiscussionValidator, newDiscussion)
   .post('/discussion/:id', protect, answerDiscussionValidator, answerDiscussion)

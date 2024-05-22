@@ -9,6 +9,7 @@ import dbUtil from '../utils/db.util.js';
 import validatorUtil from '../utils/validator.util.js';
 
 const DISCUSSIONS_PAGE_LIMIT = 20;
+const MESSAGES_IN_DISCUSSION_PAGE_LIMIT = 20;
 
 /**
  * @api {GET} /forum/list List All Forums
@@ -221,6 +222,51 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
 });
 
 /**
+ * @api {GET} /forum/:forum/discussion/:discussionId/meta Get Discussion Meta
+ * @apiGroup Forum
+ * @apiName ForumGetDiscussionMeta
+ *
+ * @apiDescription Get meta information for a discussion.
+ *
+ * @apiParam {String} forum The forum
+ * @apiParam {Number} discussionId The discussion id
+ *
+ * @apiSuccess (Success (200)) {String} name The discussion name
+ * @apiSuccess (Success (200)) {Number} nbPages The number of pages in a discussion
+ *
+ * @apiSuccessExample Success Example
+ * {
+ *   "name": "L’affaire Bayou empoisonne la campagne européenne des Ecologistes ",
+ *   "nbPages": 3
+ * }
+ *
+ * @apiPermission Public
+ */
+const getDiscussionMeta = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { discussionId } = req.params;
+  const discussion = await dbUtil.Discussion.findOne({
+    where: {
+      id: discussionId
+    },
+    raw: true
+  });
+  const totalDiscussions = await dbUtil.Message.count({
+    where: {
+      discussion_id: discussionId
+    }
+  });
+  const nbPages = Math.ceil(totalDiscussions / MESSAGES_IN_DISCUSSION_PAGE_LIMIT);
+
+  res.status(httpStatus.OK).json({ name: discussion.name, nbPages });
+});
+
+/**
  * @api {GET} /forum/discussion/:discussionId/messages Get Discussion Messages
  * @apiGroup Forum
  * @apiName ForumGetDiscussionsMessages
@@ -266,8 +312,6 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
     return next(validationError);
   }
 
-  const PAGE_LIMIT = 20;
-
   const { discussionId } = req.params;
   let page, offset;
 
@@ -277,7 +321,7 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
     page = 0;
   }
 
-  offset = page * PAGE_LIMIT;
+  offset = page * MESSAGES_IN_DISCUSSION_PAGE_LIMIT;
 
   const messages = (
     await dbUtil.Message.findAll({
@@ -297,7 +341,7 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
         discussion_id: discussionId
       },
       order: ['date'],
-      limit: PAGE_LIMIT,
+      limit: MESSAGES_IN_DISCUSSION_PAGE_LIMIT,
       offset
     })
   ).map((message) => {
@@ -555,6 +599,7 @@ export {
   getForums,
   getForumMeta,
   getDiscussions,
+  getDiscussionMeta,
   getMessagesInDiscussion,
   newDiscussion,
   answerDiscussion,
