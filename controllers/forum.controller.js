@@ -290,7 +290,7 @@ const getDiscussionMeta = asyncHandler(async (req, res, next) => {
  *     "id": 2,
  *     "content": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
  *     "date": "2024-05-14T17:00:15.647Z",
- *     "updated_date": null,
+ *     "updatedDate": null,
  *     "author": {
  *       "id": 2,
  *       "name": "Elliot",
@@ -349,7 +349,7 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
       id: message.id,
       content: message.content,
       date: message.date,
-      updated_date: message.updated_date,
+      updatedDate: message.updated_date,
       author: message.User,
       nbLikes: 0,
       nbDislikes: 0
