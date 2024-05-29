@@ -24,7 +24,7 @@ import {
   editMessageValidator
 } from '../validators/forum.validator.js';
 
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, setUser } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
@@ -33,7 +33,7 @@ router
   .get('/:forum/meta', getForumMetaValidator, getForumMeta)
   .get('/:forum/discussions', getDiscussionsValidator, getDiscussions)
   .get('/:forum/discussion/:discussionId/meta', getDiscussionMetaValidator, getDiscussionMeta)
-  .get('/discussion/:discussionId/messages', getMessagesInDiscussionValidator, getMessagesInDiscussion)
+  .get('/discussion/:discussionId/messages', setUser, getMessagesInDiscussionValidator, getMessagesInDiscussion)
   .post('/discussion', protect, newDiscussionValidator, newDiscussion)
   .post('/discussion/:id', protect, answerDiscussionValidator, answerDiscussion)
   .put('/discussion/:discussionId/message/:messageId', protect, editMessageValidator, editMessage)

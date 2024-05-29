@@ -283,6 +283,7 @@ const getDiscussionMeta = asyncHandler(async (req, res, next) => {
  * @apiSuccess (Success (200)) {Object} author The author of the message
  * @apiSuccess (Success (200)) {Number} nbLikes The number of likes
  * @apiSuccess (Success (200)) {Number} nbDislikes The number of dislikes
+ * @apiSuccess (Success (200)) {String} [vote] The vote of the current user if has any
  *
  * @apiSuccessExample Success Example
  * [
@@ -297,7 +298,8 @@ const getDiscussionMeta = asyncHandler(async (req, res, next) => {
  *       "image": null
  *     },
  *     "nbLikes": 1,
- *     "nbDislikes": 1
+ *     "nbDislikes": 1,
+ *     "vote": "like"
  *   }
  * ]
  *
@@ -334,7 +336,7 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
         },
         {
           model: dbUtil.MessageLike,
-          attributes: ['like']
+          attributes: ['like', 'user_id']
         }
       ],
       where: {
@@ -357,6 +359,10 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
 
     if (message.MessageLikes.length) {
       for (const messageLike of message.MessageLikes) {
+        if (req.user && req.user.id === messageLike.dataValues.user_id) {
+          formattedMessage.vote = messageLike.dataValues.like;
+        }
+
         if (messageLike.dataValues.like === 'like') {
           formattedMessage.nbLikes++;
         } else {
