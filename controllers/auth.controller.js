@@ -21,12 +21,14 @@ import validatorUtil from '../utils/validator.util.js';
  * @apiBody {String} name User's name
  * @apiBody {String} email User's email
  * @apiBody {String{12..}} password User's password
+ * @apiBody {String{12..}} repeatedPassword The repeated password
  *
  * @apiParamExample {json} Body Example
  * {
  *   "name": "Tom",
  *   "email": "tom.bizarre@example.com",
- *   "password": "jf8uaFa%5yIp"
+ *   "password": "jf8uaFa%5yIp",
+ *   "repeatedPassword": "jf8uaFa%5yIp"
  * }
  *
  * @apiError (Error (400)) NO_NAME There is no name
@@ -36,6 +38,9 @@ import validatorUtil from '../utils/validator.util.js';
  * @apiError (Error (400)) EMAIL_IN_USE The email address is already in use
  * @apiError (Error (400)) NO_PASSWORD There is no password
  * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (400)) NO_REPEATED_PASSWORD There is no repeated password
+ * @apiError (Error (400)) REPEATED_PASSWORD_MIN_LENGTH The repeated password doesn't have at least 12 characters
+ * @apiError (Error (400)) REPEATED_PASSWORD_NO_MATCH The repeated password doesn't match the password
  * @apiError (Error (500)) ACCOUNT_CREATION_FAILED Unable to create the account
  *
  * @apiPermission Public
