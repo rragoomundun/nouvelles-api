@@ -285,10 +285,12 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  *
  * @apiParam {String} resetPasswordToken User's confirmation token
  * @apiBody {String{12..}} password User's new password
+ * @apiBody {String{12...}} repeatedPassword The repeated password
  *
  * @apiParamExample Body Example
  * {
- *   "password": "87654321"
+ *   "password": "J9u21k%cde1t",
+ *   "repeatedPassword": "J9u21k%cde1t"
  * }
  *
  * @apiSuccess (Success (200)) {String} token JWT token
@@ -299,6 +301,9 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  *
  * @apiError (Error (400)) NO_PASSWORD There is no password
  * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (400)) NO_REPEATED_PASSWORD There is no repeated password
+ * @apiError (Error (400)) REPEATED_PASSWORD_MIN_LENGTH The repeated password doesn't have at least 12 characters
+ * @apiError (Error (400)) REPEATED_PASSWORD_NO_MATCH The repeated password doesn't match the password
  * @apiError (Error (400)) INVALID_TOKEN Invalid token
  *
  * @apiPermission Public
