@@ -22,4 +22,10 @@ const getUserDiscussionsValidator = [
   })
 ];
 
-export { getUserArticlesValidator, getUserDiscussionsValidator };
+const getUserMessagesValidator = [
+  param('userId').custom(async (value) => {
+    await userExists(value);
+  })
+];
+
+export { getUserArticlesValidator, getUserDiscussionsValidator, getUserMessagesValidator };

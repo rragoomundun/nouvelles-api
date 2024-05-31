@@ -1,8 +1,18 @@
 import express from 'express';
 
-import { getUser, getUserProfile, getUserArticles, getUserDiscussions } from '../controllers/user.controller.js';
+import {
+  getUser,
+  getUserProfile,
+  getUserArticles,
+  getUserDiscussions,
+  getUserMessages
+} from '../controllers/user.controller.js';
 
-import { getUserArticlesValidator, getUserDiscussionsValidator } from '../validators/user.validator.js';
+import {
+  getUserArticlesValidator,
+  getUserDiscussionsValidator,
+  getUserMessagesValidator
+} from '../validators/user.validator.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
 
@@ -12,6 +22,7 @@ router
   .get('/', protect, getUser)
   .get('/:userId', getUserProfile)
   .get('/:userId/article/all', getUserArticlesValidator, getUserArticles)
-  .get('/:userId/discussion/all', getUserDiscussionsValidator, getUserDiscussions);
+  .get('/:userId/discussion/all', getUserDiscussionsValidator, getUserDiscussions)
+  .get('/:userId/message/all', getUserMessagesValidator, getUserMessages);
 
 export default router;

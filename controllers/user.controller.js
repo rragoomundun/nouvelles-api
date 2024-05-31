@@ -293,4 +293,102 @@ const getUserDiscussions = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json(discussions);
 });
 
-export { getUser, getUserProfile, getUserArticles, getUserDiscussions };
+/**
+ * @api {GET} /user/:userId/message/all Get User Messages
+ * @apiGroup User
+ * @apiName UserGetMessages
+ *
+ * @apiDescription Get messages of a specific user
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiQuery {Number} [page] The page
+ *
+ * @apiSuccess (Success (200)) {Number} id The message id
+ * @apiSuccess (Success (200)) {String} content The message content
+ * @apiSuccess (Success (200)) {Date} date The message date
+ * @apiSuccess (Success (200)) {Object} discussion The discussion where the message was posted
+ * @apiSuccess (Success (200)) {Object} forum The forum where the message was posted
+ *
+ * @apiSuccessExample Success Example
+ * [
+ *   {
+ *     "id": 31,
+ *     "content": "Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat.",
+ *     "date": "2024-05-14T17:00:15.647Z",
+ *     "discussion": {
+ *       "id": 2,
+ *       "name": "The impact of globalization"
+ *     },
+ *     "forum": {
+ *       "label": "politique",
+ *       "name": "Politique"
+ *     }
+ *   }
+ * ]
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ *
+ * @apiPermission Public
+ */
+const getUserMessages = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  let page, offset;
+
+  if (req.query.page) {
+    page = req.query.page - 1;
+  } else {
+    page = 0;
+  }
+
+  offset = page * PAGE_LIMIT;
+
+  const messages = (
+    await dbUtil.Message.findAll({
+      attributes: ['id', 'content', 'date'],
+      include: [
+        {
+          model: dbUtil.Discussion,
+          attributes: ['id', 'name'],
+          required: true,
+          include: {
+            model: dbUtil.Forum,
+            attributes: ['label', 'name'],
+            required: true
+          }
+        }
+      ],
+      where: {
+        user_id: userId
+      },
+      order: [['date', 'DESC']],
+      limit: PAGE_LIMIT,
+      offset,
+      raw: true
+    })
+  ).map((message) => {
+    return {
+      id: message.id,
+      content: message.content,
+      date: message.date,
+      discussion: {
+        id: message['Discussion.id'],
+        name: message['Discussion.name']
+      },
+      forum: {
+        label: message['Discussion.Forum.label'],
+        name: message['Discussion.Forum.name']
+      }
+    };
+  });
+
+  res.status(httpStatus.OK).json(messages);
+});
+
+export { getUser, getUserProfile, getUserArticles, getUserDiscussions, getUserMessages };
