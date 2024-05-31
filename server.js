@@ -72,6 +72,7 @@ import userRoute from './routes/user.route.js';
 import categoryRoute from './routes/category.route.js';
 import homeRoute from './routes/home.route.js';
 import articleRoute from './routes/article.route.js';
+import forumRoute from './routes/forum.route.js';
 import uploadRoute from './routes/upload.route.js';
 
 // Mount routers
@@ -81,6 +82,7 @@ app.use(`${apiPrefix}/user`, userRoute);
 app.use(`${apiPrefix}/category`, categoryRoute);
 app.use(`${apiPrefix}/home`, homeRoute);
 app.use(`${apiPrefix}/article`, articleRoute);
+app.use(`${apiPrefix}/forum`, forumRoute);
 app.use(`${apiPrefix}/upload`, uploadRoute);
 
 app.use(errorMiddleware);

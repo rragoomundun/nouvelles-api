@@ -10,7 +10,7 @@ await dbUtil.FrontPage.sync({ force: true });
 await dbUtil.Role.sync({ force: true });
 await dbUtil.UserRole.sync({ force: true });
 await dbUtil.Forum.sync({ force: true });
-await dbUtil.Topic.sync({ force: true });
+await dbUtil.Discussion.sync({ force: true });
 await dbUtil.Message.sync({ force: true });
 await dbUtil.MessageLike.sync({ force: true });
 

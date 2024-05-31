@@ -8,7 +8,7 @@ import FrontPage from '../models/FrontPage.model.js';
 import Role from '../models/Role.model.js';
 import UserRole from '../models/UserRole.model.js';
 import Forum from '../models/Forum.model.js';
-import Topic from '../models/Topic.model.js';
+import Discussion from '../models/Discussion.model.js';
 import Message from '../models/Message.model.js';
 import MessageLike from '../models/MessageLike.model.js';
 
@@ -37,7 +37,7 @@ db.FrontPage = FrontPage(sequelize, db.Article);
 db.Role = Role(sequelize);
 db.UserRole = UserRole(sequelize, db.User, db.Role);
 db.Forum = Forum(sequelize);
-db.Topic = Topic(sequelize);
+db.Discussion = Discussion(sequelize);
 db.Message = Message(sequelize);
 db.MessageLike = MessageLike(sequelize, db.User, db.Message);
 
@@ -110,42 +110,42 @@ db.User.belongsToMany(db.Role, {
   }
 });
 
-db.Forum.hasMany(db.Topic, {
+db.Forum.hasMany(db.Discussion, {
   foreignKey: {
     allowNull: false,
     name: 'forum_id'
   }
 });
-db.Topic.belongsTo(db.Forum, {
+db.Discussion.belongsTo(db.Forum, {
   foreignKey: {
     allowNull: false,
     name: 'forum_id'
   }
 });
 
-db.User.hasMany(db.Topic, {
+db.User.hasMany(db.Discussion, {
   foreignKey: {
     allowNull: false,
     name: 'user_id'
   }
 });
-db.Topic.belongsTo(db.User, {
+db.Discussion.belongsTo(db.User, {
   foreignKey: {
     allowNull: false,
     name: 'user_id'
   }
 });
 
-db.Topic.hasMany(db.Message, {
+db.Discussion.hasMany(db.Message, {
   foreignKey: {
     allowNull: false,
-    name: 'topic_id'
+    name: 'discussion_id'
   }
 });
-db.Message.belongsTo(db.Topic, {
+db.Message.belongsTo(db.Discussion, {
   foreignKey: {
     allowNull: false,
-    name: 'topic_id'
+    name: 'discussion_id'
   }
 });
 
@@ -162,18 +162,24 @@ db.Message.belongsTo(db.User, {
   }
 });
 
+db.Message.hasMany(db.MessageLike, {
+  foreignKey: {
+    name: 'message_id'
+  }
+});
+
 db.Message.belongsToMany(db.User, {
   through: db.MessageLike,
   foreignKey: {
     allowNull: false,
-    name: 'user_id'
+    name: 'message_id'
   }
 });
 db.User.belongsToMany(db.Message, {
   through: db.MessageLike,
   foreignKey: {
     allowNull: false,
-    name: 'message_id'
+    name: 'user_id'
   }
 });
 
