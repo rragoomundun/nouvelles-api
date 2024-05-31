@@ -2,7 +2,9 @@ import express from 'express';
 
 import {
   getForums,
+  getForumMeta,
   getDiscussions,
+  getDiscussionMeta,
   getMessagesInDiscussion,
   newDiscussion,
   answerDiscussion,
@@ -14,20 +16,24 @@ import {
 
 import {
   getDiscussionsValidator,
+  getForumMetaValidator,
+  getDiscussionMetaValidator,
   getMessagesInDiscussionValidator,
   newDiscussionValidator,
   answerDiscussionValidator,
   editMessageValidator
 } from '../validators/forum.validator.js';
 
-import { protect } from '../middlewares/auth.middleware.js';
+import { protect, setUser } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
 
 router
   .get('/list', getForums)
+  .get('/:forum/meta', getForumMetaValidator, getForumMeta)
   .get('/:forum/discussions', getDiscussionsValidator, getDiscussions)
-  .get('/discussion/:discussionId/messages', getMessagesInDiscussionValidator, getMessagesInDiscussion)
+  .get('/:forum/discussion/:discussionId/meta', getDiscussionMetaValidator, getDiscussionMeta)
+  .get('/discussion/:discussionId/messages', setUser, getMessagesInDiscussionValidator, getMessagesInDiscussion)
   .post('/discussion', protect, newDiscussionValidator, newDiscussion)
   .post('/discussion/:id', protect, answerDiscussionValidator, answerDiscussion)
   .put('/discussion/:discussionId/message/:messageId', protect, editMessageValidator, editMessage)

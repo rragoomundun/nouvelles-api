@@ -2,6 +2,14 @@ import { body, param } from 'express-validator';
 
 import dbUtil from '../utils/db.util.js';
 
+const forumExists = async (forum) => {
+  const forumExists = await dbUtil.Forum.findOne({ where: { label: forum } });
+
+  if (forumExists === null) {
+    throw new Error('This forum does not exists;FORUM_INCORRECT');
+  }
+};
+
 const discussionExists = async (id) => {
   const discussionExists = await dbUtil.Discussion.findOne({ where: { id } });
 
@@ -9,6 +17,12 @@ const discussionExists = async (id) => {
     throw new Error('This discussion does not exists;DISCUSSION_INCORRECT');
   }
 };
+
+const getForumMetaValidator = [
+  param('forum').custom(async (value) => {
+    await forumExists(value);
+  })
+];
 
 const newDiscussionValidator = [
   body('name')
@@ -36,21 +50,22 @@ const newDiscussionValidator = [
 
 const getDiscussionsValidator = [
   param('forum').custom(async (value) => {
-    const forumExists = await dbUtil.Forum.findOne({ where: { label: value } });
+    await forumExists(value);
+  })
+];
 
-    if (forumExists === null) {
-      throw new Error('This forum does not exists;FORUM_INCORRECT');
-    }
+const getDiscussionMetaValidator = [
+  param('forum').custom(async (value) => {
+    await forumExists(value);
+  }),
+  param('discussionId').custom(async (value) => {
+    await discussionExists(value);
   })
 ];
 
 const getMessagesInDiscussionValidator = [
   param('discussionId').custom(async (value) => {
-    const discussionExists = await dbUtil.Discussion.findOne({ where: { id: value } });
-
-    if (discussionExists === null) {
-      throw new Error('This discussion does not exists;DISCUSSION_INCORRECT');
-    }
+    await discussionExists(value);
   })
 ];
 
@@ -76,7 +91,9 @@ const editMessageValidator = [
 ];
 
 export {
+  getForumMetaValidator,
   getDiscussionsValidator,
+  getDiscussionMetaValidator,
   getMessagesInDiscussionValidator,
   newDiscussionValidator,
   answerDiscussionValidator,

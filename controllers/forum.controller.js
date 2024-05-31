@@ -8,6 +8,9 @@ import ErrorResponse from '../classes/errorResponse.class.js';
 import dbUtil from '../utils/db.util.js';
 import validatorUtil from '../utils/validator.util.js';
 
+const DISCUSSIONS_PAGE_LIMIT = 20;
+const MESSAGES_IN_DISCUSSION_PAGE_LIMIT = 20;
+
 /**
  * @api {GET} /forum/list List All Forums
  * @apiGroup Forum
@@ -18,31 +21,99 @@ import validatorUtil from '../utils/validator.util.js';
  * @apiSuccess (Success (200)) {Number} id The forum id
  * @apiSuccess (Success (200)) {String} label The forum label
  * @apiSuccess (Success (200)) {String} name The forum name
+ * @apiSuccess (Success (200)) {Number} nbDiscussions The number of discussions in the forum
+ * @apiSuccess (Success (200)) {Number} nbMessages The number of messages in the forum
  *
  * @apiSuccessExample Success Example
  * [
  *   {
  *     "id": 1,
  *     "label": "general",
- *     "name": "Général"
+ *     "name": "Général",
+ *     "nbDiscussions": 12,
+ *     "nbMessages": 53
  *   },
  *   {
  *     "id": 2,
  *     "label": "politique",
- *     "name": "Politique"
+ *     "name": "Politique",
+ *     "nbDiscussions": 42,
+ *     "nbMessages": 206
  *   },
  *   {
  *     "id": 3,
  *     "label": "science",
- *     "name": "Science"
+ *     "name": "Science",
+ *     "nbDiscussions": 30,
+ *     "nbMessages": 83
  *   }
  * ]
  *
  * @apiPermission Public
  */
 const getForums = asyncHandler(async (req, res, next) => {
-  const forums = await dbUtil.Forum.findAll({ raw: true });
+  let forums = await dbUtil.Forum.findAll({
+    attributes: [
+      'id',
+      'label',
+      'name',
+      [Sequelize.literal('COUNT(DISTINCT "Discussions"."id")'), 'nbDiscussions'],
+      [Sequelize.literal('COUNT(DISTINCT "Discussions->Messages"."id")'), 'nbMessages']
+    ],
+    include: {
+      model: dbUtil.Discussion,
+      attributes: [],
+      include: {
+        model: dbUtil.Message,
+        attributes: []
+      }
+    },
+    group: ['Forum.id'],
+    order: ['id'],
+    raw: true
+  });
+
   res.status(httpStatus.OK).json(forums);
+});
+
+/**
+ * @api {GET} /forum/:forum/meta Get Forum Meta
+ * @apiGroup Forum
+ * @apiName ForumGetMeta
+ *
+ * @apiDescription Get meta information of a forum.
+ *
+ * @apiParam {String} forum The forum label
+ *
+ * @apiSuccess (Success (200)) {Number} nbPages The number of pages in a forum
+ *
+ * @apiSuccessExample Success Example
+ * {
+ *   "nbPages": 4
+ * }
+ *
+ * @apiError (Error (400)) FORUM_INCORRECT The forum is incorrect
+ *
+ * @apiPermission Public
+ */
+const getForumMeta = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { forum } = req.params;
+
+  const forumId = (await dbUtil.Forum.findOne({ where: { label: forum }, raw: true })).id;
+  const totalDiscussions = await dbUtil.Discussion.count({
+    where: {
+      forum_id: forumId
+    }
+  });
+  const nbPages = Math.ceil(totalDiscussions / DISCUSSIONS_PAGE_LIMIT);
+
+  res.status(httpStatus.OK).json({ nbPages });
 });
 
 /**
@@ -55,6 +126,31 @@ const getForums = asyncHandler(async (req, res, next) => {
  * @apiParam {String} forum The forum label
  * @apiQuery {Number} [page] The page
  *
+ * @apiSuccess (Success (200)) {Number} id The discussion id
+ * @apiSuccess (Success (200)) {String} name The name of the discussion
+ * @apiSuccess (Success (200)) {Boolean} open The open status of the discussion
+ * @apiSuccess (Success (200)) {Number} nbMessages The number of messages in the discussion
+ * @apiSuccess (Success (200)) {Date} firstMessageDate The date of the first message
+ * @apiSuccess (Success (200)) {Date} lastMessageDate The date of the last message
+ * @apiSuccess (Success (200)) {Object} author The author of the original post
+ *
+ * @apiSuccessExample Success Example
+ * [
+ *   {
+ *     "id": 6,
+ *     "name": "L'impact de la globalisation",
+ *     "open": true,
+ *     "nbMessages": "22",
+ *     "firstMessageDate": "2024-05-14T17:00:15.647Z",
+ *     "lastMessageDate": "2024-05-18T10:39:49.856Z",
+ *     "author": {
+ *       "id": 2,
+ *       "name": "Raphael",
+ *       "image": null
+ *     }
+ *   }
+ * ]
+ *
  * @apiError (Error (400)) FORUM_INCORRECT The forum is incorrect
  *
  * @apiPermission Public
@@ -66,8 +162,6 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
     return next(validationError);
   }
 
-  const PAGE_LIMIT = 20;
-
   const { forum } = req.params;
   let page, offset;
 
@@ -77,23 +171,33 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
     page = 0;
   }
 
-  offset = page * PAGE_LIMIT;
+  offset = page * DISCUSSIONS_PAGE_LIMIT;
 
   const forumId = (await dbUtil.Forum.findOne({ where: { label: forum }, raw: true })).id;
   const discussions = (
     await dbUtil.Discussion.findAll({
       attributes: ['id', 'name', 'open'],
-      include: {
-        model: dbUtil.Message,
-        attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date']],
-        required: true
-      },
+      include: [
+        {
+          model: dbUtil.Message,
+          attributes: [
+            [Sequelize.fn('MIN', Sequelize.col('date')), 'first_message_date'],
+            [Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date'],
+            [Sequelize.fn('COUNT', Sequelize.col('date')), 'nb_messages']
+          ],
+          required: true
+        },
+        {
+          model: dbUtil.User,
+          required: true
+        }
+      ],
       where: {
         forum_id: forumId
       },
-      group: ['Discussion.id'],
+      group: ['Discussion.id', 'User.id'],
       order: [[Sequelize.fn('MAX', Sequelize.col('date')), 'DESC']],
-      limit: PAGE_LIMIT,
+      limit: DISCUSSIONS_PAGE_LIMIT,
       offset,
       raw: true,
       subQuery: false
@@ -103,11 +207,63 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
       id: discussion.id,
       name: discussion.name,
       open: discussion.open,
-      last_message_date: discussion['Messages.last_message_date']
+      nbMessages: discussion['Messages.nb_messages'],
+      firstMessageDate: discussion['Messages.first_message_date'],
+      lastMessageDate: discussion['Messages.last_message_date'],
+      author: {
+        id: discussion['User.id'],
+        name: discussion['User.name'],
+        image: discussion['User.image']
+      }
     };
   });
 
   res.status(httpStatus.OK).json(discussions);
+});
+
+/**
+ * @api {GET} /forum/:forum/discussion/:discussionId/meta Get Discussion Meta
+ * @apiGroup Forum
+ * @apiName ForumGetDiscussionMeta
+ *
+ * @apiDescription Get meta information for a discussion.
+ *
+ * @apiParam {String} forum The forum
+ * @apiParam {Number} discussionId The discussion id
+ *
+ * @apiSuccess (Success (200)) {String} name The discussion name
+ * @apiSuccess (Success (200)) {Number} nbPages The number of pages in a discussion
+ *
+ * @apiSuccessExample Success Example
+ * {
+ *   "name": "L’affaire Bayou empoisonne la campagne européenne des Ecologistes ",
+ *   "nbPages": 3
+ * }
+ *
+ * @apiPermission Public
+ */
+const getDiscussionMeta = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { discussionId } = req.params;
+  const discussion = await dbUtil.Discussion.findOne({
+    where: {
+      id: discussionId
+    },
+    raw: true
+  });
+  const totalDiscussions = await dbUtil.Message.count({
+    where: {
+      discussion_id: discussionId
+    }
+  });
+  const nbPages = Math.ceil(totalDiscussions / MESSAGES_IN_DISCUSSION_PAGE_LIMIT);
+
+  res.status(httpStatus.OK).json({ name: discussion.name, nbPages });
 });
 
 /**
@@ -120,6 +276,33 @@ const getDiscussions = asyncHandler(async (req, res, next) => {
  * @apiParam {Number} discussionId The discussion id
  * @apiQuery {Number} [page] The page
  *
+ * @apiSuccess (Success (200)) {Number} id The message id
+ * @apiSuccess (Success (200)) {String} content The message content
+ * @apiSuccess (Success (200)) {Date} date The posted date
+ * @apiSuccess (Success (200)) {Date} updated_date The updated date of the message
+ * @apiSuccess (Success (200)) {Object} author The author of the message
+ * @apiSuccess (Success (200)) {Number} nbLikes The number of likes
+ * @apiSuccess (Success (200)) {Number} nbDislikes The number of dislikes
+ * @apiSuccess (Success (200)) {String} [vote] The vote of the current user if has any
+ *
+ * @apiSuccessExample Success Example
+ * [
+ *   {
+ *     "id": 2,
+ *     "content": "Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.",
+ *     "date": "2024-05-14T17:00:15.647Z",
+ *     "updatedDate": null,
+ *     "author": {
+ *       "id": 2,
+ *       "name": "Elliot",
+ *       "image": null
+ *     },
+ *     "nbLikes": 1,
+ *     "nbDislikes": 1,
+ *     "vote": "like"
+ *   }
+ * ]
+ *
  * @apiError (Error (400)) DISCUSSION_INCORRECT The discussion is incorrect
  *
  * @apiPermission Public
@@ -131,8 +314,6 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
     return next(validationError);
   }
 
-  const PAGE_LIMIT = 20;
-
   const { discussionId } = req.params;
   let page, offset;
 
@@ -142,31 +323,55 @@ const getMessagesInDiscussion = asyncHandler(async (req, res, next) => {
     page = 0;
   }
 
-  offset = page * PAGE_LIMIT;
+  offset = page * MESSAGES_IN_DISCUSSION_PAGE_LIMIT;
 
   const messages = (
     await dbUtil.Message.findAll({
       attributes: ['id', 'content', 'date', 'updated_date'],
-      include: {
-        model: dbUtil.User,
-        attributes: ['id', 'name', 'image'],
-        required: true
-      },
+      include: [
+        {
+          model: dbUtil.User,
+          attributes: ['id', 'name', 'image'],
+          required: true
+        },
+        {
+          model: dbUtil.MessageLike,
+          attributes: ['like', 'user_id']
+        }
+      ],
       where: {
         discussion_id: discussionId
       },
       order: ['date'],
-      limit: PAGE_LIMIT,
+      limit: MESSAGES_IN_DISCUSSION_PAGE_LIMIT,
       offset
     })
   ).map((message) => {
-    return {
+    const formattedMessage = {
       id: message.id,
       content: message.content,
       date: message.date,
-      updated_date: message.updated_date,
-      author: message.User
+      updatedDate: message.updated_date,
+      author: message.User,
+      nbLikes: 0,
+      nbDislikes: 0
     };
+
+    if (message.MessageLikes.length) {
+      for (const messageLike of message.MessageLikes) {
+        if (req.user && req.user.id === messageLike.dataValues.user_id) {
+          formattedMessage.vote = messageLike.dataValues.like;
+        }
+
+        if (messageLike.dataValues.like === 'like') {
+          formattedMessage.nbLikes++;
+        } else {
+          formattedMessage.nbDislikes++;
+        }
+      }
+    }
+
+    return formattedMessage;
   });
 
   res.status(httpStatus.OK).json(messages);
@@ -398,7 +603,9 @@ const deleteVote = asyncHandler(async (req, res, next) => {
 
 export {
   getForums,
+  getForumMeta,
   getDiscussions,
+  getDiscussionMeta,
   getMessagesInDiscussion,
   newDiscussion,
   answerDiscussion,
