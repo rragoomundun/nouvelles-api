@@ -144,7 +144,7 @@ const getUserProfile = asyncHandler(async (req, res, next) => {
  *   }
  * }
  *
- * @apiError (Error (404)) NOT_FOUND No user can be found for the specified id
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
  *
  * @apiPermission Public
  */
@@ -194,4 +194,103 @@ const getUserArticles = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json(articles);
 });
 
-export { getUser, getUserProfile, getUserArticles };
+/**
+ * @api {GET} /user/:userId/discussion/all Get User Discussions
+ * @apiGroup User
+ * @apiName UserGetDiscussions
+ *
+ * @apiDescription Get discussions of a specific user
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiQuery {Number} [page] The page
+ *
+ * @apiSuccess (Success (200)) {Number} id The discussion id
+ * @apiSuccess (Success (200)) {String} name The discussion name
+ * @apiSuccess (Success (200)) {Number} nbMessages The number of messages in a discussion
+ * @apiSuccess (Success (200)) {Date} firstMessageDate The date of the first message
+ * @apiSuccess (Success (200)) {Date} lastMessageDate The date of the last message
+ * @apiSuccess (Success (200)) {Object} forum The forum where the discussion was created
+ *
+ * @apiSuccessExample Success Example
+ * [
+ *   {
+ *     "id": 52,
+ *     "name": "Where do you live?",
+ *     "nbMessages": 6,
+ *     "firstMessageDate": "2024-05-14T17:00:15.647Z",
+ *     "lastMessageDate": "2024-05-18T10:39:49.856Z",
+ *     "forum": {
+ *       "label": "general",
+ *       "name": "Général"
+ *     }
+ *   }
+ * ]
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ *
+ * @apiPermission Public
+ */
+const getUserDiscussions = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  let page, offset;
+
+  if (req.query.page) {
+    page = req.query.page - 1;
+  } else {
+    page = 0;
+  }
+
+  offset = page * PAGE_LIMIT;
+
+  const discussions = (
+    await dbUtil.Discussion.findAll({
+      attributes: ['id', 'name'],
+      include: [
+        {
+          model: dbUtil.Message,
+          attributes: [
+            [Sequelize.fn('MIN', Sequelize.col('date')), 'first_message_date'],
+            [Sequelize.fn('MAX', Sequelize.col('date')), 'last_message_date'],
+            [Sequelize.fn('COUNT', Sequelize.col('date')), 'nb_messages']
+          ],
+          required: true
+        },
+        {
+          model: dbUtil.Forum,
+          attributes: ['label', 'name'],
+          required: true
+        }
+      ],
+      where: { user_id: userId },
+      group: ['Discussion.id', 'Forum.id'],
+      order: [[Sequelize.fn('MAX', Sequelize.col('date')), 'DESC']],
+      limit: PAGE_LIMIT,
+      offset,
+      raw: true,
+      subQuery: false
+    })
+  ).map((discussion) => {
+    return {
+      id: discussion.id,
+      name: discussion.name,
+      nbMessages: Number(discussion['Messages.nb_messages']),
+      firstMessageDate: discussion['Messages.first_message_date'],
+      lastMessageDate: discussion['Messages.last_message_date'],
+      forum: {
+        label: discussion['Forum.label'],
+        name: discussion['Forum.name']
+      }
+    };
+  });
+
+  res.status(httpStatus.OK).json(discussions);
+});
+
+export { getUser, getUserProfile, getUserArticles, getUserDiscussions };

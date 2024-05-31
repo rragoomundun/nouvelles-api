@@ -19,6 +19,7 @@
     "UserGetCurrent",
     "UserGetProfile",
     "UserGetArticles",
+    "UserGetDiscussions",
     "Categories",
     "CategoriesGetAll",
     "Home",
