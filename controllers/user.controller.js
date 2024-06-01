@@ -93,8 +93,11 @@ const getUserProfile = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
   const user = await dbUtil.User.findOne({
     attributes: ['id', 'name', 'image', 'biography', 'registration_date'],
-    where: { id: userId },
-    raw: true
+    include: {
+      model: dbUtil.Role,
+      required: true
+    },
+    where: { id: userId }
   });
 
   if (user === null) {
@@ -105,14 +108,19 @@ const getUserProfile = asyncHandler(async (req, res, next) => {
   const nbDiscussions = await dbUtil.Discussion.count({ where: { user_id: userId } });
   const nbMessages = await dbUtil.Message.count({ where: { user_id: userId } });
 
-  user.nbArticles = nbArticles;
-  user.nbDiscussions = nbDiscussions;
-  user.nbMessages = nbMessages;
-  user.registrationDate = user.registration_date;
+  const userFormatted = {
+    id: user.id,
+    name: user.name,
+    image: user.image,
+    biography: user.biography,
+    nbArticles: nbArticles,
+    nbDiscussions: nbDiscussions,
+    nbMessages: nbMessages,
+    registrationDate: user.registration_date,
+    roles: user.Roles.map((role) => role.dataValues.label)
+  };
 
-  delete user.registration_date;
-
-  res.status(httpStatus.OK).json(user);
+  res.status(httpStatus.OK).json(userFormatted);
 });
 
 /**
