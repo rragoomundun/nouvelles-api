@@ -1,5 +1,5 @@
 import httpStatus from 'http-status-codes';
-import { Sequelize } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -114,8 +114,11 @@ const getUserProfile = asyncHandler(async (req, res, next) => {
     image: user.image,
     biography: user.biography,
     nbArticles: nbArticles,
+    articlesNbPages: Math.ceil(nbArticles / PAGE_LIMIT),
     nbDiscussions: nbDiscussions,
+    discussionsNbPages: Math.ceil(nbDiscussions / PAGE_LIMIT),
     nbMessages: nbMessages,
+    messagesNbPages: Math.ceil(nbMessages / PAGE_LIMIT),
     registrationDate: user.registration_date,
     roles: user.Roles.map((role) => role.dataValues.label)
   };
@@ -395,6 +398,21 @@ const getUserMessages = asyncHandler(async (req, res, next) => {
       }
     };
   });
+
+  for (const message of messages) {
+    const nbPreviousMessages = await dbUtil.Message.count({
+      where: { discussion_id: message.discussion.id, id: { [Op.lt]: message.id } }
+    });
+    let page = nbPreviousMessages / PAGE_LIMIT;
+
+    if (Number.isInteger(page)) {
+      page++;
+    } else {
+      page = Math.ceil(page);
+    }
+
+    message.discussion.page = page;
+  }
 
   res.status(httpStatus.OK).json(messages);
 });
