@@ -48,7 +48,7 @@ const getUser = asyncHandler(async (req, res, next) => {
     id: req.user.id,
     name: req.user.name,
     email: req.user.email,
-    image: req.user.image,
+    image: userData.image,
     roles: userData.Roles.map((role) => role.dataValues.label)
   };
 
