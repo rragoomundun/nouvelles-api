@@ -60,10 +60,18 @@ const updateUserPasswordValidator = [
     })
 ];
 
+const updateUserBiographyValidator = [
+  param('userId').custom(async (value) => {
+    await userExists(value);
+  }),
+  body('biography').notEmpty().withMessage('Please add a biography;NO_BIOGRAPHY')
+];
+
 export {
   getUserArticlesValidator,
   getUserDiscussionsValidator,
   getUserMessagesValidator,
   updateUserImageValidator,
-  updateUserPasswordValidator
+  updateUserPasswordValidator,
+  updateUserBiographyValidator
 };

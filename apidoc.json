@@ -23,6 +23,7 @@
     "UserGetMessages",
     "UserUpdateImage",
     "UserUpdatePassword",
+    "UserUpdateBiography",
     "Categories",
     "CategoriesGetAll",
     "Home",

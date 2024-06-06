@@ -7,7 +7,8 @@ import {
   getUserDiscussions,
   getUserMessages,
   updateUserImage,
-  updateUserPassword
+  updateUserPassword,
+  updateUserBiography
 } from '../controllers/user.controller.js';
 
 import {
@@ -15,7 +16,8 @@ import {
   getUserDiscussionsValidator,
   getUserMessagesValidator,
   updateUserImageValidator,
-  updateUserPasswordValidator
+  updateUserPasswordValidator,
+  updateUserBiographyValidator
 } from '../validators/user.validator.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
@@ -29,6 +31,7 @@ router
   .get('/:userId/discussion/all', getUserDiscussionsValidator, getUserDiscussions)
   .get('/:userId/message/all', getUserMessagesValidator, getUserMessages)
   .put('/:userId/image', protect, updateUserImageValidator, updateUserImage)
-  .put('/:userId/password', protect, updateUserPasswordValidator, updateUserPassword);
+  .put('/:userId/password', protect, updateUserPasswordValidator, updateUserPassword)
+  .put('/:userId/biography', protect, updateUserBiographyValidator, updateUserBiography);
 
 export default router;

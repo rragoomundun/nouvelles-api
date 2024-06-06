@@ -428,7 +428,7 @@ const getUserMessages = asyncHandler(async (req, res, next) => {
  *
  * @apiBody {String} image The link to the image.
  *
- * @apiParamExample {json}
+ * @apiParamExample {json} Body Example
  * {
  *   "image": "https://img.r3tests.net/nouvelles/users/2/Raphael/profile-picture.jpeg"
  * }
@@ -468,7 +468,7 @@ const updateUserImage = asyncHandler(async (req, res, next) => {
  * @apiBody {String} password The password
  * @apiBody {String} repeatedPassword The repeated password
  *
- * @apiParamExample {json}
+ * @apiParamExample {json} Body Example
  * {
  *   "password": "ja_20PoK9-Gp",
  *   "repeatedPassword": "ja_20PoK9-Gp"
@@ -501,6 +501,45 @@ const updateUserPassword = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).end();
 });
 
+/**
+ * @api {PUT} /user/:userId/biography Update User Biography
+ * @apiGroup User
+ * @apiName UserUpdateBiography
+ *
+ * @apiDescription Update the user biography.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiBody {String} biography The biography
+ *
+ * @apiParamExample {json} Body Example
+ * {
+ *   "biography": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+ * }
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ * @apiError (Error (400)) NO_BIOGRAPHY There is no biography
+ *
+ * @apiPermission Private
+ */
+const updateUserBiography = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const { biography } = req.body;
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+
+  user.biography = biography;
+
+  await user.save();
+
+  res.status(httpStatus.OK).end();
+});
+
 export {
   getUser,
   getUserProfile,
@@ -508,5 +547,6 @@ export {
   getUserDiscussions,
   getUserMessages,
   updateUserImage,
-  updateUserPassword
+  updateUserPassword,
+  updateUserBiography
 };
