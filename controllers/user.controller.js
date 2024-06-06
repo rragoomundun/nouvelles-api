@@ -1,5 +1,5 @@
 import httpStatus from 'http-status-codes';
-import { Sequelize } from 'sequelize';
+import { Sequelize, Op } from 'sequelize';
 
 import asyncHandler from '../middlewares/async.middleware.js';
 
@@ -48,7 +48,7 @@ const getUser = asyncHandler(async (req, res, next) => {
     id: req.user.id,
     name: req.user.name,
     email: req.user.email,
-    image: req.user.image,
+    image: userData.image,
     roles: userData.Roles.map((role) => role.dataValues.label)
   };
 
@@ -93,8 +93,11 @@ const getUserProfile = asyncHandler(async (req, res, next) => {
   const { userId } = req.params;
   const user = await dbUtil.User.findOne({
     attributes: ['id', 'name', 'image', 'biography', 'registration_date'],
-    where: { id: userId },
-    raw: true
+    include: {
+      model: dbUtil.Role,
+      required: true
+    },
+    where: { id: userId }
   });
 
   if (user === null) {
@@ -105,14 +108,22 @@ const getUserProfile = asyncHandler(async (req, res, next) => {
   const nbDiscussions = await dbUtil.Discussion.count({ where: { user_id: userId } });
   const nbMessages = await dbUtil.Message.count({ where: { user_id: userId } });
 
-  user.nbArticles = nbArticles;
-  user.nbDiscussions = nbDiscussions;
-  user.nbMessages = nbMessages;
-  user.registrationDate = user.registration_date;
+  const userFormatted = {
+    id: user.id,
+    name: user.name,
+    image: user.image,
+    biography: user.biography,
+    nbArticles: nbArticles,
+    articlesNbPages: Math.ceil(nbArticles / PAGE_LIMIT),
+    nbDiscussions: nbDiscussions,
+    discussionsNbPages: Math.ceil(nbDiscussions / PAGE_LIMIT),
+    nbMessages: nbMessages,
+    messagesNbPages: Math.ceil(nbMessages / PAGE_LIMIT),
+    registrationDate: user.registration_date,
+    roles: user.Roles.map((role) => role.dataValues.label)
+  };
 
-  delete user.registration_date;
-
-  res.status(httpStatus.OK).json(user);
+  res.status(httpStatus.OK).json(userFormatted);
 });
 
 /**
@@ -387,6 +398,21 @@ const getUserMessages = asyncHandler(async (req, res, next) => {
       }
     };
   });
+
+  for (const message of messages) {
+    const nbPreviousMessages = await dbUtil.Message.count({
+      where: { discussion_id: message.discussion.id, id: { [Op.lt]: message.id } }
+    });
+    let page = nbPreviousMessages / PAGE_LIMIT;
+
+    if (Number.isInteger(page)) {
+      page++;
+    } else {
+      page = Math.ceil(page);
+    }
+
+    message.discussion.page = page;
+  }
 
   res.status(httpStatus.OK).json(messages);
 });
