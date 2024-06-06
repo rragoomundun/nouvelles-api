@@ -18,6 +18,7 @@ const s3 = new AWS.S3({
  * @apiDescription Upload a file to S3. File size limited to 10 MB.
  *
  * @apiBody {File{10}} file The file to be uploaded.
+ * @apiBody {String} [fileName] The name of the file.
  *
  * @apiError (Error (400)) UPLOAD_FAILED Cannot upload file
  *
@@ -25,11 +26,20 @@ const s3 = new AWS.S3({
  */
 const uploadFile = asyncHandler(async (req, res, next) => {
   const { file } = req;
+  const { fileName } = req.body;
+  let key = `${process.env.AWS_S3_IMAGE_BUCKET_FOLDER}/${req.user.id}/${req.user.name}/`;
+
+  if (fileName) {
+    key += fileName;
+  } else {
+    key += Date.now();
+  }
+
+  key += `.${file.mimetype.split('/')[1]}`;
+
   const params = {
     Bucket: process.env.AWS_S3_IMAGE_BUCKET_NAME,
-    Key: `${process.env.AWS_S3_IMAGE_BUCKET_FOLDER}/${req.user.id}/${req.user.name}/${Date.now()}.${
-      file.mimetype.split('/')[1]
-    }`,
+    Key: key,
     Body: file.buffer,
     ContentType: file.mimetype
   };
