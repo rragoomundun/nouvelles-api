@@ -456,4 +456,57 @@ const updateUserImage = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).end();
 });
 
-export { getUser, getUserProfile, getUserArticles, getUserDiscussions, getUserMessages, updateUserImage };
+/**
+ * @api {PUT} /user/:userId/password Update User Password
+ * @apiGroup User
+ * @apiName UserUpdatePassword
+ *
+ * @apiDescription Update the user password.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiBody {String} password The password
+ * @apiBody {String} repeatedPassword The repeated password
+ *
+ * @apiParamExample {json}
+ * {
+ *   "password": "ja_20PoK9-Gp",
+ *   "repeatedPassword": "ja_20PoK9-Gp"
+ * }
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ * @apiError (Error (400)) NO_PASSWORD There are no password
+ * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (400)) NO_REPEATED_PASSWORD There is no repeated password
+ * @apiError (Error (400)) REPEATED_PASSWORD_MIN_LENGTH The repeated password doesn't have at least 12 characters
+ * @apiError (Error (400)) REPEATED_PASSWORD_NO_MATCH The repeated password doesn't match the password
+ *
+ * @apiPermission Private
+ */
+const updateUserPassword = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const { password } = req.body;
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+
+  user.password = password;
+
+  await user.save();
+
+  res.status(httpStatus.OK).end();
+});
+
+export {
+  getUser,
+  getUserProfile,
+  getUserArticles,
+  getUserDiscussions,
+  getUserMessages,
+  updateUserImage,
+  updateUserPassword
+};

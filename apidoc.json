@@ -22,6 +22,7 @@
     "UserGetDiscussions",
     "UserGetMessages",
     "UserUpdateImage",
+    "UserUpdatePassword",
     "Categories",
     "CategoriesGetAll",
     "Home",
