@@ -21,6 +21,7 @@
     "UserGetArticles",
     "UserGetDiscussions",
     "UserGetMessages",
+    "UserUpdateImage",
     "Categories",
     "CategoriesGetAll",
     "Home",

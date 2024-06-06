@@ -1,4 +1,4 @@
-import { param } from 'express-validator';
+import { param, body } from 'express-validator';
 
 import dbUtil from '../utils/db.util.js';
 
@@ -28,4 +28,11 @@ const getUserMessagesValidator = [
   })
 ];
 
-export { getUserArticlesValidator, getUserDiscussionsValidator, getUserMessagesValidator };
+const updateUserImageValidator = [
+  param('userId').custom(async (value) => {
+    await userExists(value);
+  }),
+  body('image').notEmpty().withMessage('Please add an image;NO_IMAGE')
+];
+
+export { getUserArticlesValidator, getUserDiscussionsValidator, getUserMessagesValidator, updateUserImageValidator };

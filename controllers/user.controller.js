@@ -417,4 +417,43 @@ const getUserMessages = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json(messages);
 });
 
-export { getUser, getUserProfile, getUserArticles, getUserDiscussions, getUserMessages };
+/**
+ * @api {PUT} /user/:userId/image Update User Image
+ * @apiGroup User
+ * @apiName UserUpdateImage
+ *
+ * @apiDescription Update the user image.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiBody {String} image The link to the image.
+ *
+ * @apiParamExample {json}
+ * {
+ *   "image": "https://img.r3tests.net/nouvelles/users/2/Raphael/profile-picture.jpeg"
+ * }
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ * @apiError (Error (400)) NO_IMAGE There are no image
+ *
+ * @apiPermission Private
+ */
+const updateUserImage = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const { image } = req.body;
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+
+  user.image = image;
+
+  await user.save();
+
+  res.status(httpStatus.OK).end();
+});
+
+export { getUser, getUserProfile, getUserArticles, getUserDiscussions, getUserMessages, updateUserImage };
