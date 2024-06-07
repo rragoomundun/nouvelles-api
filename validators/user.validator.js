@@ -67,11 +67,18 @@ const updateUserBiographyValidator = [
   body('biography').notEmpty().withMessage('Please add a biography;NO_BIOGRAPHY')
 ];
 
+const deleteUserValidator = [
+  param('userId').custom(async (value) => {
+    await userExists(value);
+  })
+];
+
 export {
   getUserArticlesValidator,
   getUserDiscussionsValidator,
   getUserMessagesValidator,
   updateUserImageValidator,
   updateUserPasswordValidator,
-  updateUserBiographyValidator
+  updateUserBiographyValidator,
+  deleteUserValidator
 };

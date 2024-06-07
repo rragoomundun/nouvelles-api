@@ -540,6 +540,40 @@ const updateUserBiography = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).end();
 });
 
+/**
+ * @api {DELETE} /user/:userId Delete User
+ * @apiGroup User
+ * @apiName UserDelete
+ *
+ * @apiDescription Delete a user.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ *
+ * @apiPermission Private
+ */
+const deleteUser = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const anonymousUser = await dbUtil.User.findOne({ where: { name: 'Anonyme' }, raw: true });
+
+  // Set articles, discussions, and messages to Anonymous user
+  await dbUtil.Article.update({ user_id: anonymousUser.id }, { where: { user_id: userId } });
+  await dbUtil.Discussion.update({ user_id: anonymousUser.id }, { where: { user_id: userId } });
+  await dbUtil.Message.update({ user_id: anonymousUser.id }, { where: { user_id: userId } });
+
+  // Delete the user
+  await dbUtil.User.destroy({ where: { id: userId } });
+
+  res.status(httpStatus.OK).end();
+});
+
 export {
   getUser,
   getUserProfile,
@@ -548,5 +582,6 @@ export {
   getUserMessages,
   updateUserImage,
   updateUserPassword,
-  updateUserBiography
+  updateUserBiography,
+  deleteUser
 };

@@ -21,10 +21,22 @@ await dbUtil.User.create({
   name: 'Alien'
 });
 
+// Create the anonymous user
+await dbUtil.User.create({
+  email: 'anonymous@nouvelles-fake.com',
+  password: '1234567890112',
+  name: 'Anonyme'
+});
+
 // Define available roles for the users
 await dbUtil.Role.create({
   label: 'admin',
   name: 'Administrateur'
+});
+
+await dbUtil.Role.create({
+  label: 'anonyme',
+  name: 'Anonyme'
 });
 
 await dbUtil.Role.create({

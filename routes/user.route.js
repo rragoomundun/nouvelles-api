@@ -8,7 +8,8 @@ import {
   getUserMessages,
   updateUserImage,
   updateUserPassword,
-  updateUserBiography
+  updateUserBiography,
+  deleteUser
 } from '../controllers/user.controller.js';
 
 import {
@@ -17,7 +18,8 @@ import {
   getUserMessagesValidator,
   updateUserImageValidator,
   updateUserPasswordValidator,
-  updateUserBiographyValidator
+  updateUserBiographyValidator,
+  deleteUserValidator
 } from '../validators/user.validator.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
@@ -32,6 +34,7 @@ router
   .get('/:userId/message/all', getUserMessagesValidator, getUserMessages)
   .put('/:userId/image', protect, updateUserImageValidator, updateUserImage)
   .put('/:userId/password', protect, updateUserPasswordValidator, updateUserPassword)
-  .put('/:userId/biography', protect, updateUserBiographyValidator, updateUserBiography);
+  .put('/:userId/biography', protect, updateUserBiographyValidator, updateUserBiography)
+  .delete('/:userId', protect, deleteUserValidator, deleteUser);
 
 export default router;
