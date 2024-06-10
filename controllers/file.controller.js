@@ -11,9 +11,9 @@ const s3 = new AWS.S3({
 });
 
 /**
- * @api {POST} /upload Upload File
- * @apiGroup Upload
- * @apiName UploadUpload
+ * @api {POST} /file Upload File
+ * @apiGroup File
+ * @apiName FileUpload
  *
  * @apiDescription Upload a file to S3. File size limited to 10 MB.
  *
@@ -52,4 +52,32 @@ const uploadFile = asyncHandler(async (req, res, next) => {
   }
 });
 
-export { uploadFile };
+/**
+ * @api {DELETE} /file Delete File
+ * @apiGroup File
+ * @apiName FileDelete
+ *
+ * @apiDescription Delete a file from S3.
+ *
+ * @apiBody {String} fileName The path to the file.
+ *
+ * @apiError (Error (400)) DELETION_FAILED Cannot delete file
+ *
+ * @apiPermission Private
+ */
+const deleteFile = asyncHandler(async (req, res, next) => {
+  const { fileName } = req.body;
+  const params = {
+    Bucket: process.env.AWS_S3_IMAGE_BUCKET_NAME,
+    Key: fileName
+  };
+
+  try {
+    await s3.deleteObject(params).promise();
+    res.status(httpStatus.OK).end();
+  } catch {
+    return next(new ErrorResponse('Cannot delete file', httpStatus.BAD_REQUEST, 'DELETION_FAILED'));
+  }
+});
+
+export { uploadFile, deleteFile };

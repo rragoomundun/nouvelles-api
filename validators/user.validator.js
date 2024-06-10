@@ -31,8 +31,7 @@ const getUserMessagesValidator = [
 const updateUserImageValidator = [
   param('userId').custom(async (value) => {
     await userExists(value);
-  }),
-  body('image').notEmpty().withMessage('Please add an image;NO_IMAGE')
+  })
 ];
 
 const updateUserPasswordValidator = [
@@ -63,8 +62,7 @@ const updateUserPasswordValidator = [
 const updateUserBiographyValidator = [
   param('userId').custom(async (value) => {
     await userExists(value);
-  }),
-  body('biography').notEmpty().withMessage('Please add a biography;NO_BIOGRAPHY')
+  })
 ];
 
 const deleteUserValidator = [

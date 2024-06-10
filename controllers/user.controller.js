@@ -21,6 +21,7 @@ const PAGE_LIMIT = 20;
  * @apiSuccess (Success (200)) {String} name The user's name
  * @apiSuccess (Success (200)) {String} email The user's email address
  * @apiSuccess (Success (200)) {String} image The user's profile image
+ * @apiSuccess (Success (200)) {String} biography The user's biography
  * @apiSuccess (Success (200)) {String[]} roles The user's roles
  *
  * @apiSuccessExample Success Example
@@ -29,6 +30,7 @@ const PAGE_LIMIT = 20;
  *   "name": "Thomas"
  *   "email": "thomas.hugo@remail.com",
  *   "image": "https://img.r3tests.net/users/2/profile-picture.png",
+ *   "biography": null,
  *   "roles": ["regular"]
  * }
  *
@@ -49,6 +51,7 @@ const getUser = asyncHandler(async (req, res, next) => {
     name: req.user.name,
     email: req.user.email,
     image: userData.image,
+    biography: userData.biography,
     roles: userData.Roles.map((role) => role.dataValues.label)
   };
 
@@ -518,7 +521,6 @@ const updateUserPassword = asyncHandler(async (req, res, next) => {
  * }
  *
  * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
- * @apiError (Error (400)) NO_BIOGRAPHY There is no biography
  *
  * @apiPermission Private
  */

@@ -48,8 +48,9 @@
     "ForumLikeMessage",
     "ForumDislikeMessage",
     "ForumDeleteVote",
-    "Upload",
-    "UploadUpload"
+    "File",
+    "FileUpload",
+    "FileDelete"
   ],
   "template": {
     "forceLanguage": "en",
