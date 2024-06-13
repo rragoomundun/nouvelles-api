@@ -21,6 +21,10 @@
     "UserGetArticles",
     "UserGetDiscussions",
     "UserGetMessages",
+    "UserUpdateImage",
+    "UserUpdatePassword",
+    "UserUpdateBiography",
+    "UserDelete",
     "Categories",
     "CategoriesGetAll",
     "Home",
@@ -44,8 +48,9 @@
     "ForumLikeMessage",
     "ForumDislikeMessage",
     "ForumDeleteVote",
-    "Upload",
-    "UploadUpload"
+    "File",
+    "FileUpload",
+    "FileDelete"
   ],
   "template": {
     "forceLanguage": "en",

@@ -139,7 +139,7 @@ const registerConfirm = asyncHandler(async (req, res, next) => {
  * @apiBody {String} email User's email
  * @apiBody {String{12..}} password User's password
  *
- * @apiParamExample Body Example
+ * @apiParamExample {json} Body Example
  * {
  *   "email": "newuser@test.com",
  *   "password": "123456789012"
@@ -207,7 +207,7 @@ const logout = asyncHandler(async (req, res, next) => {
  *
  * @apiBody {String} email User's email
  *
- * @apiParamExample Body Example
+ * @apiParamExample {json} Body Example
  * {
  *   "email": "newuser@test.com"
  * }
@@ -287,7 +287,7 @@ const forgotPassword = asyncHandler(async (req, res, next) => {
  * @apiBody {String{12..}} password User's new password
  * @apiBody {String{12...}} repeatedPassword The repeated password
  *
- * @apiParamExample Body Example
+ * @apiParamExample {json} Body Example
  * {
  *   "password": "J9u21k%cde1t",
  *   "repeatedPassword": "J9u21k%cde1t"

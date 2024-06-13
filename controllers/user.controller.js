@@ -21,6 +21,7 @@ const PAGE_LIMIT = 20;
  * @apiSuccess (Success (200)) {String} name The user's name
  * @apiSuccess (Success (200)) {String} email The user's email address
  * @apiSuccess (Success (200)) {String} image The user's profile image
+ * @apiSuccess (Success (200)) {String} biography The user's biography
  * @apiSuccess (Success (200)) {String[]} roles The user's roles
  *
  * @apiSuccessExample Success Example
@@ -29,6 +30,7 @@ const PAGE_LIMIT = 20;
  *   "name": "Thomas"
  *   "email": "thomas.hugo@remail.com",
  *   "image": "https://img.r3tests.net/users/2/profile-picture.png",
+ *   "biography": null,
  *   "roles": ["regular"]
  * }
  *
@@ -49,6 +51,7 @@ const getUser = asyncHandler(async (req, res, next) => {
     name: req.user.name,
     email: req.user.email,
     image: userData.image,
+    biography: userData.biography,
     roles: userData.Roles.map((role) => role.dataValues.label)
   };
 
@@ -417,4 +420,170 @@ const getUserMessages = asyncHandler(async (req, res, next) => {
   res.status(httpStatus.OK).json(messages);
 });
 
-export { getUser, getUserProfile, getUserArticles, getUserDiscussions, getUserMessages };
+/**
+ * @api {PUT} /user/:userId/image Update User Image
+ * @apiGroup User
+ * @apiName UserUpdateImage
+ *
+ * @apiDescription Update the user image.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiBody {String} image The link to the image.
+ *
+ * @apiParamExample {json} Body Example
+ * {
+ *   "image": "https://img.r3tests.net/nouvelles/users/2/Raphael/profile-picture.jpeg"
+ * }
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ * @apiError (Error (400)) NO_IMAGE There are no image
+ *
+ * @apiPermission Private
+ */
+const updateUserImage = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const { image } = req.body;
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+
+  user.image = image;
+
+  await user.save();
+
+  res.status(httpStatus.OK).end();
+});
+
+/**
+ * @api {PUT} /user/:userId/password Update User Password
+ * @apiGroup User
+ * @apiName UserUpdatePassword
+ *
+ * @apiDescription Update the user password.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiBody {String} password The password
+ * @apiBody {String} repeatedPassword The repeated password
+ *
+ * @apiParamExample {json} Body Example
+ * {
+ *   "password": "ja_20PoK9-Gp",
+ *   "repeatedPassword": "ja_20PoK9-Gp"
+ * }
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ * @apiError (Error (400)) NO_PASSWORD There are no password
+ * @apiError (Error (400)) PASSWORD_MIN_LENGTH The password doesn't have at least 12 characters
+ * @apiError (Error (400)) NO_REPEATED_PASSWORD There is no repeated password
+ * @apiError (Error (400)) REPEATED_PASSWORD_MIN_LENGTH The repeated password doesn't have at least 12 characters
+ * @apiError (Error (400)) REPEATED_PASSWORD_NO_MATCH The repeated password doesn't match the password
+ *
+ * @apiPermission Private
+ */
+const updateUserPassword = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const { password } = req.body;
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+
+  user.password = password;
+
+  await user.save();
+
+  res.status(httpStatus.OK).end();
+});
+
+/**
+ * @api {PUT} /user/:userId/biography Update User Biography
+ * @apiGroup User
+ * @apiName UserUpdateBiography
+ *
+ * @apiDescription Update the user biography.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiBody {String} biography The biography
+ *
+ * @apiParamExample {json} Body Example
+ * {
+ *   "biography": "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+ * }
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ *
+ * @apiPermission Private
+ */
+const updateUserBiography = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const { biography } = req.body;
+  const user = await dbUtil.User.findOne({ where: { id: userId } });
+
+  user.biography = biography;
+
+  await user.save();
+
+  res.status(httpStatus.OK).end();
+});
+
+/**
+ * @api {DELETE} /user/:userId Delete User
+ * @apiGroup User
+ * @apiName UserDelete
+ *
+ * @apiDescription Delete a user.
+ *
+ * @apiParam {Number} userId The user id
+ *
+ * @apiError (Error (400)) USER_INCORRECT The user id is incorrect
+ *
+ * @apiPermission Private
+ */
+const deleteUser = asyncHandler(async (req, res, next) => {
+  const validationError = validatorUtil.validate(req);
+
+  if (validationError) {
+    return next(validationError);
+  }
+
+  const { userId } = req.params;
+  const anonymousUser = await dbUtil.User.findOne({ where: { name: 'Anonyme' }, raw: true });
+
+  // Set articles, discussions, and messages to Anonymous user
+  await dbUtil.Article.update({ user_id: anonymousUser.id }, { where: { user_id: userId } });
+  await dbUtil.Discussion.update({ user_id: anonymousUser.id }, { where: { user_id: userId } });
+  await dbUtil.Message.update({ user_id: anonymousUser.id }, { where: { user_id: userId } });
+
+  // Delete the user
+  await dbUtil.User.destroy({ where: { id: userId } });
+
+  res.status(httpStatus.OK).end();
+});
+
+export {
+  getUser,
+  getUserProfile,
+  getUserArticles,
+  getUserDiscussions,
+  getUserMessages,
+  updateUserImage,
+  updateUserPassword,
+  updateUserBiography,
+  deleteUser
+};

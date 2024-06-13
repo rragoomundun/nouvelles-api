@@ -5,13 +5,21 @@ import {
   getUserProfile,
   getUserArticles,
   getUserDiscussions,
-  getUserMessages
+  getUserMessages,
+  updateUserImage,
+  updateUserPassword,
+  updateUserBiography,
+  deleteUser
 } from '../controllers/user.controller.js';
 
 import {
   getUserArticlesValidator,
   getUserDiscussionsValidator,
-  getUserMessagesValidator
+  getUserMessagesValidator,
+  updateUserImageValidator,
+  updateUserPasswordValidator,
+  updateUserBiographyValidator,
+  deleteUserValidator
 } from '../validators/user.validator.js';
 
 import { protect } from '../middlewares/auth.middleware.js';
@@ -23,6 +31,10 @@ router
   .get('/:userId', getUserProfile)
   .get('/:userId/article/all', getUserArticlesValidator, getUserArticles)
   .get('/:userId/discussion/all', getUserDiscussionsValidator, getUserDiscussions)
-  .get('/:userId/message/all', getUserMessagesValidator, getUserMessages);
+  .get('/:userId/message/all', getUserMessagesValidator, getUserMessages)
+  .put('/:userId/image', protect, updateUserImageValidator, updateUserImage)
+  .put('/:userId/password', protect, updateUserPasswordValidator, updateUserPassword)
+  .put('/:userId/biography', protect, updateUserBiographyValidator, updateUserBiography)
+  .delete('/:userId', protect, deleteUserValidator, deleteUser);
 
 export default router;
