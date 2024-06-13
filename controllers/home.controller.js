@@ -88,19 +88,9 @@ const getContent = asyncHandler(async (req, res, next) => {
   }
 
   // Most viewed recent articles
-  let minArticleDate = (
-    await dbUtil.Article.findOne({
-      attributes: [[Sequelize.fn('MAX', Sequelize.col('date')), 'maxDate']],
-      raw: true
-    })
-  ).maxDate;
-
-  minArticleDate = new Date(minArticleDate);
-  minArticleDate.setDate(minArticleDate.getDate() - 7);
-
-  const mostViewedArticles = (
+  let mostViewedArticles = (
     await dbUtil.Article.findAll({
-      attributes: ['id', 'title', 'image'],
+      attributes: ['id', 'title', 'image', 'views'],
       include: [
         {
           model: dbUtil.Category,
@@ -108,18 +98,22 @@ const getContent = asyncHandler(async (req, res, next) => {
         }
       ],
       where: {
-        published: true,
-        date: { [Op.gte]: minArticleDate }
+        published: true
       },
-      order: [['views', 'DESC']],
-      limit: 9
+      order: [['date', 'DESC']],
+      limit: 9,
+      raw: true
     })
-  ).map((article) => ({
-    id: article.dataValues.id,
-    title: article.dataValues.title,
-    image: article.dataValues.image,
-    category: article.dataValues.Category.label
-  }));
+  )
+    .sort((article1, article2) => {
+      return article2.views - article1.views;
+    })
+    .map((article) => ({
+      id: article.id,
+      title: article.title,
+      image: article.image,
+      category: article['Category.label']
+    }));
 
   res.status(httpStatus.OK).json({
     frontArticles: frontPageArticles,
