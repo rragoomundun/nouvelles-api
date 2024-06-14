@@ -52,6 +52,7 @@
     "SearchArticles",
     "SearchArticlesMeta",
     "SearchDiscussions",
+    "SearchDiscussionsMeta",
     "File",
     "FileUpload",
     "FileDelete"
