@@ -48,6 +48,10 @@
     "ForumLikeMessage",
     "ForumDislikeMessage",
     "ForumDeleteVote",
+    "Search",
+    "SearchArticles",
+    "SearchArticlesMeta",
+    "SearchDiscussions",
     "File",
     "FileUpload",
     "FileDelete"

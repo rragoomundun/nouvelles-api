@@ -195,7 +195,8 @@ const getArticlesByCategoryMeta = asyncHandler(async (req, res, next) => {
 
   const totalArticles = await dbUtil.Article.count({
     where: {
-      category_id: categoryId
+      category_id: categoryId,
+      published: true
     }
   });
   const nbPages = Math.ceil(totalArticles / PAGE_LIMIT);
