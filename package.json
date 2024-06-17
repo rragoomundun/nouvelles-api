@@ -1,6 +1,6 @@
 {
   "name": "nouvelles-api",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "API pour nouvelles : site d'information et forum.",
   "main": "server.js",
   "type": "module",

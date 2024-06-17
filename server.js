@@ -8,6 +8,7 @@ import hpp from 'hpp';
 import rateLimit from 'express-rate-limit';
 
 import xssProtectMiddleware from './middlewares/xssProtect.middleware.js';
+import notFoundMiddleware from './middlewares/notFound.middleware.js';
 import errorMiddleware from './middlewares/error.middleware.js';
 
 const app = express();
@@ -73,6 +74,7 @@ import categoryRoute from './routes/category.route.js';
 import homeRoute from './routes/home.route.js';
 import articleRoute from './routes/article.route.js';
 import forumRoute from './routes/forum.route.js';
+import searchRoute from './routes/search.route.js';
 import fileRoute from './routes/file.route.js';
 
 // Mount routers
@@ -83,8 +85,11 @@ app.use(`${apiPrefix}/category`, categoryRoute);
 app.use(`${apiPrefix}/home`, homeRoute);
 app.use(`${apiPrefix}/article`, articleRoute);
 app.use(`${apiPrefix}/forum`, forumRoute);
+app.use(`${apiPrefix}/search`, searchRoute);
 app.use(`${apiPrefix}/file`, fileRoute);
 
+// Errors
+app.use(notFoundMiddleware);
 app.use(errorMiddleware);
 
 // Crons

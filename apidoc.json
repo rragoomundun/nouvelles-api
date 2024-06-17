@@ -1,6 +1,6 @@
 {
   "name": "Nouvelles API",
-  "version": "0.4.0",
+  "version": "0.6.0",
   "description": "Backend API for Nouvelles: information and forum website",
   "title": "Nouvelles API",
   "url": "http://localhost:5000/v1",
@@ -48,6 +48,11 @@
     "ForumLikeMessage",
     "ForumDislikeMessage",
     "ForumDeleteVote",
+    "Search",
+    "SearchArticles",
+    "SearchArticlesMeta",
+    "SearchDiscussions",
+    "SearchDiscussionsMeta",
     "File",
     "FileUpload",
     "FileDelete"
