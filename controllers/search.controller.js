@@ -193,6 +193,8 @@ const searchDiscussions = asyncHandler(async (req, res, next) => {
       where: {
         content: { [Op.iLike]: `%${query}%` }
       },
+      offset,
+      limit: PAGE_LIMIT,
       raw: true
     })
   ).map((message) => ({
