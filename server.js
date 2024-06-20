@@ -27,6 +27,8 @@ if (process.env.NODE_ENV === 'dev') {
     /http:\/\/127\.0\.0\.1:.*/,
     /https:\/\/127\.0\.0\.1:.*/
   );
+} else {
+  origin.push(process.env.APP_URL);
 }
 
 app.use(

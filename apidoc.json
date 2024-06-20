@@ -3,8 +3,8 @@
   "version": "0.6.0",
   "description": "Backend API for Nouvelles: information and forum website",
   "title": "Nouvelles API",
-  "url": "http://localhost:5000/v1",
-  "sampleUrl": "http://localhost:5000/v1",
+  "url": "https://api-nouvelles.r3tests.net/v1",
+  "sampleUrl": "https://api-nouvelles.r3tests.net/v1",
   "order": [
     "API",
     "Auth",
