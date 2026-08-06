@@ -24,7 +24,7 @@ const sequelize = new Sequelize(process.env.DATABASE_URL, {
 
 try {
   await sequelize.authenticate();
-  console.log(`Connected to database ${process.env.DB_DATABASE} on port ${process.env.DB_PORT}`);
+  console.log(`Connection to database successful`);
 } catch {
   console.log('Connection to database failed');
 }
