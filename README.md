@@ -17,20 +17,8 @@ PORT=5000
 RATE_LIMIT=100
 
 
-# Database user
-DB_USER=postgres
-
-# Database host
-DB_HOST=localhost
-
-# Database name
-DB_DATABASE=nouvelles
-
-# Database password
-DB_PASSWORD=I9jz4p8m
-
-# Database port
-DB_PORT=5432
+# Database connection string
+DATABASE_URL=connectionstring
 
 
 # AWS SES Region

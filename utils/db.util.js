@@ -12,10 +12,15 @@ import Discussion from '../models/Discussion.model.js';
 import Message from '../models/Message.model.js';
 import MessageLike from '../models/MessageLike.model.js';
 
-const sequelize = new Sequelize(
-  `postgres://${process.env.DB_USER}:${process.env.DB_PASSWORD}@${process.env.DB_HOST}:${process.env.DB_PORT}/${process.env.DB_DATABASE}`,
-  { logging: false }
-);
+const sequelize = new Sequelize(process.env.DATABASE_URL, {
+  dialect: 'postgres',
+  dialectOptions: {
+    ssl: {
+      require: true
+    }
+  },
+  logging: false
+});
 
 try {
   await sequelize.authenticate();
